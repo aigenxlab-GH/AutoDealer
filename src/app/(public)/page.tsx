@@ -81,94 +81,184 @@ export default async function HomePage() {
     <>
       <DealerJsonLd />
 
-      {/* ── HERO ────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-brand text-brand-foreground">
-        {/* Subtle diagonal noise texture */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMCAxTDEgME0wIDNMMiAxTTEgNEwzIDJNMiA0TDQgMk00IDNMMyA0IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] opacity-60" />
+      {/* ── HERO — dark ambient luxury ──────────────────────────────── */}
+      <section
+        className="relative overflow-hidden text-white"
+        style={{ background: "#0c0d10" }}
+      >
+        {/* ── Layer 1: warm gold ambient glow (left, behind headline) */}
+        <div
+          className="pointer-events-none absolute -left-32 -top-32 h-[600px] w-[600px] rounded-full opacity-20"
+          style={{
+            background:
+              "radial-gradient(circle, #c9973a 0%, #8b5e1a 35%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-16">
-          {/* Left — text */}
-          <div className="max-w-xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
-              <Star className="size-3 fill-gold text-gold" />
-              Since {siteConfig.dealer.establishedYear} &middot;{" "}
-              {siteConfig.dealer.city}
+        {/* ── Layer 2: cool blue-purple glow (right, behind car) */}
+        <div
+          className="pointer-events-none absolute -right-20 top-0 h-[500px] w-[500px] rounded-full opacity-25"
+          style={{
+            background:
+              "radial-gradient(circle, #1e3a6e 0%, #0d1f42 40%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
+
+        {/* ── Layer 3: decorative circle outline (like the reference) */}
+        <div
+          className="pointer-events-none absolute right-[28%] top-[-120px] hidden h-[420px] w-[420px] rounded-full border border-white/5 lg:block"
+        />
+        <div
+          className="pointer-events-none absolute right-[32%] top-[-80px] hidden h-[280px] w-[280px] rounded-full border border-white/[0.04] lg:block"
+        />
+
+        {/* ── Layer 4: very subtle film-grain texture */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "128px 128px",
+          }}
+        />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-0 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
+          {/* ── LEFT: headline text ── */}
+          <div className="py-14 lg:py-20">
+            {/* Eyebrow pill */}
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium tracking-wide text-white/60 backdrop-blur-sm">
+              <Star className="size-2.5 fill-gold text-gold" />
+              Since {siteConfig.dealer.establishedYear} &middot; {siteConfig.dealer.city}
             </span>
 
-            {/* h1 auto-serif from CSS */}
-            <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              Certified Used Cars &amp; Bikes,{" "}
-              <em className="not-italic text-gold">Honestly Priced.</em>
+            {/* Large display headline — Fraunces serif */}
+            <h1
+              className="mt-5 text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Certified
+              <br />
+              <em className="not-italic" style={{ color: "#c9973a" }}>
+                Used Cars
+              </em>
+              <br />
+              &amp; Bikes.
             </h1>
 
-            <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/75">
-              No hidden charges, no pressure. Fully inspected vehicles perfect
-              for{" "}
-              <span className="font-semibold text-white">first-time buyers</span>{" "}
-              and{" "}
-              <span className="font-semibold text-white">budget-smart shoppers.</span>
+            {/* Gold hairline divider */}
+            <div className="my-6 h-px w-12" style={{ background: "#c9973a" }} />
+
+            <p className="max-w-sm text-[15px] leading-relaxed text-white/50">
+              Honestly priced, fully inspected — no hidden charges, no pressure.
+              Perfect for{" "}
+              <span className="text-white/80">first-time buyers</span> &amp;{" "}
+              <span className="text-white/80">budget-smart shoppers.</span>
             </p>
 
             {/* CTAs */}
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/cars"
-                className={cn(
-                  buttonVariants({ size: "lg", variant: "secondary" }),
-                  "font-medium",
-                )}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/8 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/15"
               >
                 <Car className="size-4" /> Browse Cars
               </Link>
               <Link
                 href="/bikes"
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "bg-gold text-gold-foreground hover:bg-gold/90 font-medium",
-                )}
+                className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: "#c9973a", color: "#1a0f00" }}
               >
                 <Bike className="size-4" /> Browse Bikes
               </Link>
             </div>
 
-            {/* Inline stats */}
-            <div className="mt-8 flex gap-8 border-t border-white/10 pt-6">
+            {/* Stats */}
+            <div className="mt-10 flex gap-8 border-t border-white/8 pt-7">
               {[
                 { value: `${cars.length}+`, label: "Cars" },
                 { value: `${bikes.length}+`, label: "Bikes" },
-                { value: `${yearsActive}+`, label: "Years Trusted" },
+                { value: `${yearsActive}+`, label: "Yrs Trusted" },
               ].map((s) => (
                 <div key={s.label}>
-                  <div className="font-heading text-2xl font-semibold">{s.value}</div>
-                  <div className="text-xs text-white/60">{s.label}</div>
+                  <div
+                    className="text-2xl font-semibold"
+                    style={{ fontFamily: "var(--font-heading)", color: "#c9973a" }}
+                  >
+                    {s.value}
+                  </div>
+                  <div className="mt-0.5 text-[11px] uppercase tracking-widest text-white/30">
+                    {s.label}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right — car image (hidden on mobile) */}
-          <div className="relative hidden lg:block">
-            <div className="relative h-[340px] overflow-hidden rounded-2xl shadow-2xl shadow-black/40">
-              <Image
-                src={HERO_IMG}
-                alt="Premium used car"
-                fill
-                priority
-                sizes="50vw"
-                className="object-cover"
-              />
-              {/* Subtle left-edge blend */}
-              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-brand to-transparent" />
-            </div>
+          {/* ── RIGHT: car image — no border-radius, bleeds to edge ── */}
+          <div className="relative hidden h-full min-h-[480px] lg:block">
+            {/* Full-height image, no rounded corners — blends into dark bg */}
+            <Image
+              src={HERO_IMG}
+              alt="Premium used car"
+              fill
+              priority
+              sizes="50vw"
+              className="object-cover object-center"
+              style={{ filter: "brightness(0.72) saturate(0.9)" }}
+            />
+
+            {/* Left fade — blends image into dark bg */}
+            <div
+              className="absolute inset-y-0 left-0 w-40"
+              style={{
+                background: "linear-gradient(to right, #0c0d10, transparent)",
+              }}
+            />
+            {/* Top fade */}
+            <div
+              className="absolute inset-x-0 top-0 h-24"
+              style={{
+                background: "linear-gradient(to bottom, #0c0d10, transparent)",
+              }}
+            />
+            {/* Bottom fade */}
+            <div
+              className="absolute inset-x-0 bottom-0 h-28"
+              style={{
+                background: "linear-gradient(to top, #0c0d10, transparent)",
+              }}
+            />
+
+            {/* Warm glow over the car */}
+            <div
+              className="absolute inset-0 opacity-15"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 60% 50%, #c9973a, transparent 60%)",
+              }}
+            />
+
             {/* Floating trust badge */}
-            <div className="absolute -bottom-4 -left-4 rounded-xl border border-white/20 bg-white/10 p-3 backdrop-blur-md">
-              <div className="flex items-center gap-2">
+            <div
+              className="absolute bottom-10 left-[-1px] rounded-r-xl border-y border-r px-4 py-3"
+              style={{
+                background: "rgba(12,13,16,0.85)",
+                borderColor: "rgba(201,151,58,0.25)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <div className="flex items-center gap-2.5">
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="size-3 fill-gold text-gold" />
                   ))}
                 </div>
-                <span className="text-xs font-medium">4.9 · 200+ happy buyers</span>
+                <div>
+                  <div className="text-xs font-semibold text-white">4.9 / 5.0</div>
+                  <div className="text-[10px] text-white/40">200+ happy buyers</div>
+                </div>
               </div>
             </div>
           </div>

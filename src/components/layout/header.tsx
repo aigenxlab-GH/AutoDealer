@@ -33,10 +33,10 @@ function Logo() {
         <Car className="size-4" />
       </span>
       <span className="flex flex-col leading-none">
-        <span className="text-sm font-bold tracking-tight" style={{ fontFamily: "var(--font-heading)" }}>
+        <span className="text-sm font-bold tracking-tight text-white" style={{ fontFamily: "var(--font-heading)" }}>
           {siteConfig.name}
         </span>
-        <span className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="text-[9px] uppercase tracking-[0.14em] text-white/40">
           {siteConfig.tagline}
         </span>
       </span>
@@ -53,9 +53,9 @@ export function Header() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="sticky top-0 z-40 w-full border-b border-white/[0.07] bg-[#0c0d10]/95 backdrop-blur">
       {/* Gold hairline accent at top */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#c9973a]/50 to-transparent" />
 
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
@@ -68,13 +68,13 @@ export function Header() {
               className={cn(
                 "relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:text-foreground",
                 isActive(item.href)
-                  ? "text-brand"
-                  : "text-muted-foreground",
+                  ? "text-[#c9973a]"
+                  : "text-white/55 hover:text-white",
               )}
             >
               {item.label}
               {isActive(item.href) && (
-                <span className="absolute inset-x-3 -bottom-[18px] h-[2px] rounded-full bg-gold" />
+                <span className="absolute inset-x-3 -bottom-[18px] h-[2px] rounded-full bg-[#c9973a]" />
               )}
             </Link>
           ))}
