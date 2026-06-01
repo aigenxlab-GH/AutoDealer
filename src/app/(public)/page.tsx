@@ -1,10 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
   Banknote,
-  Car,
   Bike,
+  Car,
   MessageCircle,
   ShieldCheck,
   Star,
@@ -25,12 +26,12 @@ const USPS = [
   {
     icon: BadgeCheck,
     title: "Verified History",
-    desc: "Every vehicle comes with documented ownership & service records.",
+    desc: "Documented ownership & service records on every vehicle.",
   },
   {
     icon: Wrench,
     title: "200-Point Inspection",
-    desc: "Thoroughly checked by certified technicians before listing.",
+    desc: "Certified technicians check everything before it's listed.",
   },
   {
     icon: Banknote,
@@ -40,7 +41,7 @@ const USPS = [
   {
     icon: ShieldCheck,
     title: "Transparent Pricing",
-    desc: "No hidden charges. The price you see is the price you pay.",
+    desc: "No hidden charges — what you see is what you pay.",
   },
 ];
 
@@ -62,6 +63,10 @@ const TESTIMONIALS = [
   },
 ];
 
+// A dramatic car photo for the hero visual (Unsplash)
+const HERO_IMG =
+  "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85";
+
 export default async function HomePage() {
   const [featured, cars, bikes] = await Promise.all([
     vehicleRepository.getFeatured(8),
@@ -69,107 +74,146 @@ export default async function HomePage() {
     vehicleRepository.list({ type: "bike" }),
   ]);
 
-  const yearsActive = new Date().getFullYear() - siteConfig.dealer.establishedYear;
+  const yearsActive =
+    new Date().getFullYear() - siteConfig.dealer.establishedYear;
 
   return (
     <>
       <DealerJsonLd />
-      {/* Hero */}
+
+      {/* ── HERO ────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-brand text-brand-foreground">
-        <div className="absolute inset-0 bg-[radial-gradient(60%_120%_at_50%_0%,rgba(255,255,255,0.12),transparent)]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Star className="size-3.5 fill-gold text-gold" />
-              Trusted since {siteConfig.dealer.establishedYear} ·{" "}
+        {/* Subtle diagonal noise texture */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMCAxTDEgME0wIDNMMiAxTTEgNEwzIDJNMiA0TDQgMk00IDNMMyA0IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] opacity-60" />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-16">
+          {/* Left — text */}
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
+              <Star className="size-3 fill-gold text-gold" />
+              Since {siteConfig.dealer.establishedYear} &middot;{" "}
               {siteConfig.dealer.city}
             </span>
-            <h1 className="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+
+            {/* h1 auto-serif from CSS */}
+            <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
               Find your next{" "}
-              <span className="text-gold">car or bike</span>, the trusted way.
+              <em className="not-italic text-gold">car or bike,</em>
+              <br />
+              the trusted way.
             </h1>
-            <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
+
+            <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/75">
               {siteConfig.description}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+
+            {/* CTAs */}
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/cars"
-                className={cn(buttonVariants({ size: "lg", variant: "secondary" }))}
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "secondary" }),
+                  "font-medium",
+                )}
               >
-                <Car className="size-5" /> Browse Cars
+                <Car className="size-4" /> Browse Cars
               </Link>
               <Link
                 href="/bikes"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "bg-gold text-gold-foreground hover:bg-gold/90",
+                  "bg-gold text-gold-foreground hover:bg-gold/90 font-medium",
                 )}
               >
-                <Bike className="size-5" /> Browse Bikes
+                <Bike className="size-4" /> Browse Bikes
               </Link>
             </div>
 
-            <dl className="mt-12 grid max-w-md grid-cols-3 gap-6">
-              <div>
-                <dt className="text-2xl font-bold sm:text-3xl">{cars.length}+</dt>
-                <dd className="text-sm text-white/70">Quality Cars</dd>
+            {/* Inline stats */}
+            <div className="mt-8 flex gap-8 border-t border-white/10 pt-6">
+              {[
+                { value: `${cars.length}+`, label: "Cars" },
+                { value: `${bikes.length}+`, label: "Bikes" },
+                { value: `${yearsActive}+`, label: "Years Trusted" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="font-heading text-2xl font-semibold">{s.value}</div>
+                  <div className="text-xs text-white/60">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — car image (hidden on mobile) */}
+          <div className="relative hidden lg:block">
+            <div className="relative h-[340px] overflow-hidden rounded-2xl shadow-2xl shadow-black/40">
+              <Image
+                src={HERO_IMG}
+                alt="Premium used car"
+                fill
+                priority
+                sizes="50vw"
+                className="object-cover"
+              />
+              {/* Subtle left-edge blend */}
+              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-brand to-transparent" />
+            </div>
+            {/* Floating trust badge */}
+            <div className="absolute -bottom-4 -left-4 rounded-xl border border-white/20 bg-white/10 p-3 backdrop-blur-md">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="size-3 fill-gold text-gold" />
+                  ))}
+                </div>
+                <span className="text-xs font-medium">4.9 · 200+ happy buyers</span>
               </div>
-              <div>
-                <dt className="text-2xl font-bold sm:text-3xl">
-                  {bikes.length}+
-                </dt>
-                <dd className="text-sm text-white/70">Premium Bikes</dd>
-              </div>
-              <div>
-                <dt className="text-2xl font-bold sm:text-3xl">
-                  {yearsActive}+
-                </dt>
-                <dd className="text-sm text-white/70">Years of Trust</dd>
-              </div>
-            </dl>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* USP / trust bar */}
-      <section className="border-b bg-secondary/30">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-px overflow-hidden px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+      {/* ── TRUST BAR ───────────────────────────────────────────────── */}
+      <section className="border-b border-border/60 bg-card">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-border/50 px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
           {USPS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex gap-3 p-3">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                <Icon className="size-5" />
+            <div key={title} className="flex items-start gap-3 px-4 py-5 first:pl-0 last:pr-0">
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/8 text-brand">
+                <Icon className="size-4" />
               </span>
               <div>
-                <h3 className="text-sm font-semibold">{title}</h3>
-                <p className="text-xs text-muted-foreground">{desc}</p>
+                <h3 className="text-[13px] font-semibold">{title}</h3>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
+                  {desc}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Category nav */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-5 md:grid-cols-2">
+      {/* ── CATEGORY CARDS ──────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 pt-12 pb-2 sm:px-6 lg:px-8">
+        <div className="grid gap-4 md:grid-cols-2">
           <CategoryCard
             href="/cars"
             label="Used Cars"
             count={cars.length}
-            icon={<Car className="size-7" />}
+            icon={<Car className="size-6" />}
             blurb="Hatchbacks, sedans, SUVs & more — inspected and ready to drive."
           />
           <CategoryCard
             href="/bikes"
             label="Used Bikes"
             count={bikes.length}
-            icon={<Bike className="size-7" />}
+            icon={<Bike className="size-6" />}
             blurb="Commuters, cruisers & sportbikes from trusted brands."
           />
         </div>
       </section>
 
-      {/* Featured */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      {/* ── FEATURED ────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <SectionHeading
           title="Featured Listings"
           subtitle="Hand-picked vehicles our customers love"
@@ -179,32 +223,31 @@ export default async function HomePage() {
         <VehicleGrid vehicles={featured} />
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-secondary/30 py-16">
+      {/* ── TESTIMONIALS ────────────────────────────────────────────── */}
+      <section className="border-y border-border/50 bg-secondary/40 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading
             title="What our customers say"
-            subtitle="Real experiences from happy buyers"
+            subtitle="Real experiences from verified buyers"
+            centred
           />
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {TESTIMONIALS.map((t) => (
               <figure
                 key={t.name}
-                className="flex flex-col rounded-xl border bg-card p-6 shadow-sm"
+                className="flex flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm"
               >
                 <div className="flex gap-0.5 text-gold">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="size-4 fill-current" />
+                    <Star key={i} className="size-3.5 fill-current" />
                   ))}
                 </div>
-                <blockquote className="mt-4 flex-1 text-sm text-muted-foreground">
-                  “{t.text}”
+                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  &ldquo;{t.text}&rdquo;
                 </blockquote>
-                <figcaption className="mt-5">
-                  <div className="font-semibold">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {t.vehicle}
-                  </div>
+                <figcaption className="mt-5 border-t border-border/50 pt-4">
+                  <div className="text-sm font-semibold">{t.name}</div>
+                  <div className="text-xs text-muted-foreground">{t.vehicle}</div>
                 </figcaption>
               </figure>
             ))}
@@ -212,28 +255,29 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-6 rounded-2xl bg-brand px-8 py-12 text-center text-brand-foreground sm:flex-row sm:text-left">
-          <div>
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              Can’t find what you’re looking for?
-            </h2>
-            <p className="mt-2 text-white/80">
-              Tell us your budget and preference — we’ll find the perfect match.
-            </p>
+      {/* ── CTA BANNER ──────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-2xl bg-brand px-8 py-10 text-brand-foreground">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.10),transparent_60%)]" />
+          <div className="relative flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
+            <div>
+              {/* h2 auto-serif */}
+              <h2 className="text-2xl font-semibold sm:text-3xl">
+                Can&rsquo;t find what you&rsquo;re looking for?
+              </h2>
+              <p className="mt-1.5 text-sm text-white/70">
+                Tell us your budget and preference — we&rsquo;ll source the right vehicle for you.
+              </p>
+            </div>
+            <a
+              href={buildGeneralWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-transform hover:scale-105 active:scale-95"
+            >
+              <MessageCircle className="size-4" /> Chat with us
+            </a>
           </div>
-          <a
-            href={buildGeneralWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "bg-[#25D366] text-white hover:bg-[#25D366]/90",
-            )}
-          >
-            <MessageCircle className="size-5" /> Chat with us
-          </a>
         </div>
       </section>
     </>
@@ -256,21 +300,22 @@ function CategoryCard({
   return (
     <Link
       href={href}
-      className="group relative flex items-center gap-5 overflow-hidden rounded-2xl border bg-card p-7 shadow-sm transition-all hover:shadow-md"
+      className="group flex items-center gap-5 rounded-2xl border border-border/70 bg-card px-6 py-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
     >
-      <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
+      <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-brand/15 bg-brand/8 text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
         {icon}
       </span>
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xl font-bold">{label}</h3>
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          {/* h3 auto-serif */}
+          <h3 className="text-lg font-semibold">{label}</h3>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             {count} available
           </span>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">{blurb}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{blurb}</p>
       </div>
-      <ArrowRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+      <ArrowRight className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-1 group-hover:text-brand" />
     </Link>
   );
 }

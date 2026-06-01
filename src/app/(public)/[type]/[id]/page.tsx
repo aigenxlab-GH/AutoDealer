@@ -147,11 +147,11 @@ export default async function VehicleDetailPage({
         {/* Right column (summary) */}
         <div className="lg:col-span-1">
           <div className="space-y-5 lg:sticky lg:top-20">
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
+            <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-center gap-2">
                 {vehicle.isFeatured && !vehicle.isSold && (
                   <Badge className="bg-gold text-gold-foreground hover:bg-gold">
-                    Featured
+                    ✦ Featured
                   </Badge>
                 )}
                 {vehicle.isSold && <Badge variant="destructive">Sold</Badge>}
@@ -160,14 +160,15 @@ export default async function VehicleDetailPage({
                 </Badge>
               </div>
 
-              <h1 className="mt-3 text-xl font-bold tracking-tight">
+              {/* h1 auto-serif via CSS */}
+              <h1 className="mt-3 text-xl font-semibold leading-snug tracking-tight">
                 {vehicleTitle(vehicle)}
               </h1>
               {vehicle.variant && (
                 <p className="text-sm text-muted-foreground">{vehicle.variant}</p>
               )}
 
-              <p className="mt-3 text-3xl font-bold text-brand">
+              <p className="font-heading mt-3 text-3xl font-semibold text-brand">
                 {formatPriceFull(vehicle.price)}
               </p>
               {vehicle.registrationCity && (
@@ -180,7 +181,7 @@ export default async function VehicleDetailPage({
                 {highlights.map(({ icon: Icon, label, value }) => (
                   <div
                     key={label}
-                    className="rounded-lg border bg-muted/30 p-3"
+                    className="rounded-xl border border-border/60 bg-secondary/50 p-3"
                   >
                     <Icon className="size-4 text-brand" />
                     <p className="mt-1.5 text-xs text-muted-foreground">

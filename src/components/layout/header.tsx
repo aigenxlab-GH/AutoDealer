@@ -28,15 +28,15 @@ const NAV = [
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2">
-      <span className="flex size-9 items-center justify-center rounded-lg bg-brand text-brand-foreground">
-        <Car className="size-5" />
+    <Link href="/" className="flex items-center gap-2.5">
+      <span className="flex size-8 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
+        <Car className="size-4" />
       </span>
       <span className="flex flex-col leading-none">
-        <span className="text-base font-bold tracking-tight">
+        <span className="text-sm font-bold tracking-tight" style={{ fontFamily: "var(--font-heading)" }}>
           {siteConfig.name}
         </span>
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
           {siteConfig.tagline}
         </span>
       </span>
@@ -53,39 +53,45 @@ export function Header() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      {/* Gold hairline accent at top */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-0.5 md:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
+                "relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:text-foreground",
                 isActive(item.href)
                   ? "text-brand"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground",
               )}
             >
               {item.label}
+              {isActive(item.href) && (
+                <span className="absolute inset-x-3 -bottom-[18px] h-[2px] rounded-full bg-gold" />
+              )}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Link
             href="/shortlist"
             aria-label="Shortlist"
             className={cn(
               buttonVariants({ variant: "ghost", size: "icon" }),
-              "relative",
+              "relative size-8",
             )}
           >
-            <Heart className="size-5" />
+            <Heart className="size-4" />
             {ready && count > 0 && (
-              <Badge className="absolute -right-1 -top-1 size-5 justify-center rounded-full p-0 text-[10px]">
+              <Badge className="absolute -right-0.5 -top-0.5 size-4 justify-center rounded-full p-0 text-[9px]">
                 {count}
               </Badge>
             )}
@@ -95,9 +101,12 @@ export function Header() {
             href={buildGeneralWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "hidden bg-[#25D366] text-white hover:bg-[#25D366]/90 sm:inline-flex",
+            )}
           >
-            <MessageCircle className="size-4" /> Chat
+            <MessageCircle className="size-3.5" /> Chat
           </a>
 
           {/* Mobile menu */}
@@ -107,25 +116,25 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="size-8 md:hidden"
                   aria-label="Open menu"
                 />
               }
             >
-              <Menu className="size-5" />
+              <Menu className="size-4" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
+                <SheetTitle className="font-heading text-base">Menu</SheetTitle>
               </SheetHeader>
-              <nav className="mt-2 flex flex-col gap-1 px-2">
+              <nav className="mt-3 flex flex-col gap-0.5 px-2">
                 {NAV.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
+                      "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
                       isActive(item.href) ? "text-brand" : "text-foreground",
                     )}
                   >
@@ -136,7 +145,7 @@ export function Header() {
                   href={buildGeneralWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 flex items-center gap-2 rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-brand-foreground"
+                  className="mt-3 flex items-center gap-2 rounded-lg bg-[#25D366] px-3 py-2.5 text-sm font-medium text-white"
                 >
                   <MessageCircle className="size-4" /> Chat on WhatsApp
                 </a>

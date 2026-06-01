@@ -54,11 +54,12 @@ export async function CatalogContent({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+        <div className="mb-2 h-px w-8 bg-gold" />
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Used {label} in {allOfType[0]?.registrationCity ?? "your city"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {allOfType.length} {label.toLowerCase()} available · certified &
+          {allOfType.length} {label.toLowerCase()} available · certified &amp;
           inspected
         </p>
       </div>
@@ -77,7 +78,7 @@ export async function CatalogContent({
       <div className="flex gap-8">
         {/* Desktop sidebar */}
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-20 rounded-xl border bg-card p-5">
+          <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <FilterBar {...filterProps} />
           </div>
         </aside>
