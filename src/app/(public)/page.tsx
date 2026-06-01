@@ -97,14 +97,16 @@ export default async function HomePage() {
 
             {/* h1 auto-serif from CSS */}
             <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              Find your next{" "}
-              <em className="not-italic text-gold">car or bike,</em>
-              <br />
-              the trusted way.
+              Certified Used Cars &amp; Bikes,{" "}
+              <em className="not-italic text-gold">Honestly Priced.</em>
             </h1>
 
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/75">
-              {siteConfig.description}
+              No hidden charges, no pressure. Fully inspected vehicles perfect
+              for{" "}
+              <span className="font-semibold text-white">first-time buyers</span>{" "}
+              and{" "}
+              <span className="font-semibold text-white">budget-smart shoppers.</span>
             </p>
 
             {/* CTAs */}

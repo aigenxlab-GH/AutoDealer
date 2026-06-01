@@ -7,7 +7,7 @@ export const siteConfig = {
   shortName: "Sapphire Auto",
   tagline: "Certified Pre-Owned Cars & Bikes",
   description:
-    "Hand-picked, fully inspected used cars and bikes. Transparent pricing, verified history, and instant WhatsApp assistance from a dealer you can trust.",
+    "No hidden charges, no pressure. Fully inspected used cars and bikes, honestly priced — perfect for first-time buyers and budget-smart shoppers in Bengaluru.",
   // Public site URL (used for SEO / sitemap). Overridden by NEXT_PUBLIC_SITE_URL.
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://sapphireautohub.example.com",
 
