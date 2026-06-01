@@ -7,7 +7,7 @@ export const siteConfig = {
   shortName: "Sapphire Auto",
   tagline: "Certified Pre-Owned Cars & Bikes",
   description:
-    "No hidden charges, no pressure. Fully inspected used cars and bikes, honestly priced — perfect for first-time buyers and budget-smart shoppers in Bengaluru.",
+    "No hidden charges, no pressure. Fully inspected used cars and bikes, honestly priced — perfect for first-time buyers and budget-smart shoppers in Janjgir-Champa.",
   // Public site URL (used for SEO / sitemap). Overridden by NEXT_PUBLIC_SITE_URL.
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://sapphireautohub.example.com",
 
@@ -17,11 +17,11 @@ export const siteConfig = {
     whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "919876543210",
     phoneDisplay: "+91 98765 43210",
     email: "sales@sapphireautohub.example.com",
-    addressLine: "12, MG Road, Indiranagar",
-    city: "Bengaluru",
-    state: "Karnataka",
-    pincode: "560038",
-    mapsUrl: "https://maps.google.com/?q=MG+Road+Indiranagar+Bengaluru",
+    addressLine: "Main Road, Janjgir",
+    city: "Janjgir-Champa",
+    state: "Chhattisgarh",
+    pincode: "495668",
+    mapsUrl: "https://maps.google.com/?q=Janjgir-Champa+Chhattisgarh",
     establishedYear: 2009,
     openHours: "Mon – Sat, 9:30 AM – 8:00 PM",
   },

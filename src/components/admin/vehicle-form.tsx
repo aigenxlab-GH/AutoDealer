@@ -310,7 +310,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             <Input
               value={form.registrationNumber ?? ""}
               onChange={(e) => set("registrationNumber", e.target.value)}
-              placeholder="e.g. KA-01-MJ-4521"
+              placeholder="e.g. CG-07-MJ-4521"
             />
           </Field>
           <Field label="Registration City">
