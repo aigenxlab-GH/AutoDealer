@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp";
 
@@ -13,12 +11,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   const { dealer } = siteConfig;
   const rows = [
-    {
-      icon: MapPin,
-      label: "Showroom",
-      value: `${dealer.addressLine}, ${dealer.city}, ${dealer.state} - ${dealer.pincode}`,
-      href: dealer.mapsUrl,
-    },
+    { icon: MapPin, label: "Showroom", value: `${dealer.addressLine}, ${dealer.city}, ${dealer.state} - ${dealer.pincode}`, href: dealer.mapsUrl },
     { icon: Phone, label: "Phone", value: dealer.phoneDisplay, href: `tel:${dealer.phoneDisplay}` },
     { icon: Mail, label: "Email", value: dealer.email, href: `mailto:${dealer.email}` },
     { icon: Clock, label: "Open Hours", value: dealer.openHours },
@@ -26,37 +19,36 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
-      <p className="text-sm font-semibold uppercase tracking-widest text-brand">
+      <div className="mb-1 h-px w-8" style={{ background: "linear-gradient(90deg,#c9973a,#f0c96a)" }} />
+      <p className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: "#c9973a" }}>
         Get in touch
       </p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white/90 sm:text-4xl">
         Contact {siteConfig.name}
       </h1>
-      <p className="mt-4 max-w-2xl text-muted-foreground">
-        Have a question about a vehicle or want to book a visit? Reach out — we
-        respond fastest on WhatsApp.
+      <p className="mt-4 max-w-2xl text-[15px] text-white/45">
+        Have a question about a vehicle or want to book a visit? Reach out — we respond fastest on WhatsApp.
       </p>
 
       <div className="mt-10 grid gap-8 md:grid-cols-2">
-        <div className="space-y-5">
+        <div className="space-y-6">
           {rows.map(({ icon: Icon, label, value, href }) => (
             <div key={label} className="flex gap-4">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+              <span
+                className="flex size-11 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: "rgba(201,151,58,0.12)", color: "#c9973a" }}
+              >
                 <Icon className="size-5" />
               </span>
               <div>
-                <div className="text-sm font-semibold">{label}</div>
+                <div className="text-sm font-semibold text-white/70">{label}</div>
                 {href ? (
-                  <a
-                    href={href}
-                    target={href.startsWith("http") ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
+                  <a href={href} target={href.startsWith("http") ? "_blank" : undefined}
+                    rel="noopener noreferrer" className="text-sm text-white/40 hover:text-white/80 transition-colors">
                     {value}
                   </a>
                 ) : (
-                  <p className="text-sm text-muted-foreground">{value}</p>
+                  <p className="text-sm text-white/40">{value}</p>
                 )}
               </div>
             </div>
@@ -66,24 +58,21 @@ export default function ContactPage() {
             href={buildGeneralWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "w-fit bg-[#25D366] text-white hover:bg-[#25D366]/90",
-            )}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"
+            style={{ boxShadow: "0 4px 24px rgba(37,211,102,0.3)" }}
           >
             <MessageCircle className="size-5" /> Message on WhatsApp
           </a>
         </div>
 
-        <div className="overflow-hidden rounded-xl border shadow-sm">
+        <div className="overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
           <iframe
             title="Showroom location"
             className="h-full min-h-72 w-full"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(
-              `${dealer.addressLine}, ${dealer.city}`,
-            )}&output=embed`}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(`${dealer.addressLine}, ${dealer.city}`)}&output=embed`}
+            style={{ filter: "invert(90%) hue-rotate(180deg)" }}
           />
         </div>
       </div>

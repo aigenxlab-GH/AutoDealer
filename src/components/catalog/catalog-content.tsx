@@ -78,7 +78,7 @@ export async function CatalogContent({
       <div className="flex gap-8">
         {/* Desktop sidebar */}
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+          <div className="sticky top-20 rounded-2xl p-5" style={{ background: "#14161b", border: "1px solid rgba(255,255,255,0.07)" }}>
             <FilterBar {...filterProps} />
           </div>
         </aside>

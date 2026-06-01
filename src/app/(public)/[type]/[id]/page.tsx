@@ -147,7 +147,7 @@ export default async function VehicleDetailPage({
         {/* Right column (summary) */}
         <div className="lg:col-span-1">
           <div className="space-y-5 lg:sticky lg:top-20">
-            <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+            <div className="rounded-2xl p-5" style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 60%), #14161b", border: "1px solid rgba(201,151,58,0.18)", boxShadow: "0 0 40px rgba(201,151,58,0.06)" }}>
               <div className="flex flex-wrap items-center gap-2">
                 {vehicle.isFeatured && !vehicle.isSold && (
                   <Badge className="bg-gold text-gold-foreground hover:bg-gold">
@@ -161,14 +161,15 @@ export default async function VehicleDetailPage({
               </div>
 
               {/* h1 auto-serif via CSS */}
-              <h1 className="mt-3 text-xl font-semibold leading-snug tracking-tight">
+              <h1 className="mt-3 text-xl font-semibold leading-snug tracking-tight text-white/90">
                 {vehicleTitle(vehicle)}
               </h1>
               {vehicle.variant && (
                 <p className="text-sm text-muted-foreground">{vehicle.variant}</p>
               )}
 
-              <p className="font-heading mt-3 text-3xl font-semibold text-brand">
+              <p className="font-heading mt-3 text-3xl font-semibold"
+                style={{ background: "linear-gradient(90deg,#c9973a,#f0c96a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                 {formatPriceFull(vehicle.price)}
               </p>
               {vehicle.registrationCity && (

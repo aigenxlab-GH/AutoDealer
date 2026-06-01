@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight,
   BadgeCheck,
   Banknote,
   Bike,
@@ -11,9 +10,8 @@ import {
   Star,
   Wrench,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { VehicleGrid } from "@/components/vehicle-grid";
+import { CategoryCard } from "@/components/category-card";
 import { SectionHeading } from "@/components/section-heading";
 import { vehicleRepository } from "@/lib/data";
 import { siteConfig } from "@/config/site";
@@ -266,18 +264,23 @@ export default async function HomePage() {
       </section>
 
       {/* ── TRUST BAR ───────────────────────────────────────────────── */}
-      <section className="border-b border-border/60 bg-card">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-border/50 px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+      <section style={{ background: "#0f1014", borderTop: "1px solid rgba(201,151,58,0.12)" }}>
+        <div className="mx-auto grid max-w-7xl grid-cols-2 px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
           {USPS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex items-start gap-3 px-4 py-5 first:pl-0 last:pr-0">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/8 text-brand">
+            <div
+              key={title}
+              className="flex items-start gap-3 px-4 py-6"
+              style={{ borderRight: "1px solid rgba(255,255,255,0.05)" }}
+            >
+              <span
+                className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg"
+                style={{ background: "rgba(201,151,58,0.12)", color: "#c9973a" }}
+              >
                 <Icon className="size-4" />
               </span>
               <div>
-                <h3 className="text-[13px] font-semibold">{title}</h3>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-                  {desc}
-                </p>
+                <h3 className="text-[13px] font-semibold text-white/80">{title}</h3>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-white/35">{desc}</p>
               </div>
             </div>
           ))}
@@ -287,25 +290,17 @@ export default async function HomePage() {
       {/* ── CATEGORY CARDS ──────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 pt-12 pb-2 sm:px-6 lg:px-8">
         <div className="grid gap-4 md:grid-cols-2">
-          <CategoryCard
-            href="/cars"
-            label="Used Cars"
-            count={cars.length}
+          <CategoryCard href="/cars" label="Used Cars" count={cars.length}
             icon={<Car className="size-6" />}
-            blurb="Hatchbacks, sedans, SUVs & more — inspected and ready to drive."
-          />
-          <CategoryCard
-            href="/bikes"
-            label="Used Bikes"
-            count={bikes.length}
+            blurb="Hatchbacks, sedans, SUVs & more — inspected and ready to drive." />
+          <CategoryCard href="/bikes" label="Used Bikes" count={bikes.length}
             icon={<Bike className="size-6" />}
-            blurb="Commuters, cruisers & sportbikes from trusted brands."
-          />
+            blurb="Commuters, cruisers & sportbikes from trusted brands." />
         </div>
       </section>
 
       {/* ── FEATURED ────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <SectionHeading
           title="Featured Listings"
           subtitle="Hand-picked vehicles our customers love"
@@ -316,30 +311,30 @@ export default async function HomePage() {
       </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────── */}
-      <section className="border-y border-border/50 bg-secondary/40 py-12">
+      <section className="py-14" style={{ background: "#0f1014" }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            title="What our customers say"
-            subtitle="Real experiences from verified buyers"
-            centred
-          />
+          <SectionHeading title="What our customers say" subtitle="Real experiences from verified buyers" centred />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {TESTIMONIALS.map((t) => (
               <figure
                 key={t.name}
-                className="flex flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm"
+                className="flex flex-col rounded-2xl p-6 transition-all duration-300"
+                style={{
+                  background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 60%), #14161b",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
               >
-                <div className="flex gap-0.5 text-gold">
+                <div className="flex gap-0.5" style={{ color: "#c9973a" }}>
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className="size-3.5 fill-current" />
                   ))}
                 </div>
-                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-white/45">
                   &ldquo;{t.text}&rdquo;
                 </blockquote>
-                <figcaption className="mt-5 border-t border-border/50 pt-4">
-                  <div className="text-sm font-semibold">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.vehicle}</div>
+                <figcaption className="mt-5 border-t border-white/8 pt-4">
+                  <div className="text-sm font-semibold text-white/80">{t.name}</div>
+                  <div className="text-xs text-white/30">{t.vehicle}</div>
                 </figcaption>
               </figure>
             ))}
@@ -349,24 +344,29 @@ export default async function HomePage() {
 
       {/* ── CTA BANNER ──────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-brand px-8 py-10 text-brand-foreground">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.10),transparent_60%)]" />
+        <div
+          className="relative overflow-hidden rounded-2xl px-8 py-10"
+          style={{
+            background: "linear-gradient(135deg, #1a1400 0%, #0c0d10 50%, #001030 100%)",
+            border: "1px solid rgba(201,151,58,0.25)",
+            boxShadow: "0 0 60px rgba(201,151,58,0.08), inset 0 1px 0 rgba(201,151,58,0.1)",
+          }}
+        >
+          {/* Glow top-right */}
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-20"
+            style={{ background: "radial-gradient(circle, #c9973a, transparent 70%)", filter: "blur(40px)" }} />
           <div className="relative flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
             <div>
-              {/* h2 auto-serif */}
-              <h2 className="text-2xl font-semibold sm:text-3xl">
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
                 Can&rsquo;t find what you&rsquo;re looking for?
               </h2>
-              <p className="mt-1.5 text-sm text-white/70">
+              <p className="mt-1.5 text-sm text-white/45">
                 Tell us your budget and preference — we&rsquo;ll source the right vehicle for you.
               </p>
             </div>
-            <a
-              href={buildGeneralWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-transform hover:scale-105 active:scale-95"
-            >
+            <a href={buildGeneralWhatsAppUrl()} target="_blank" rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+              style={{ boxShadow: "0 4px 24px rgba(37,211,102,0.3)" }}>
               <MessageCircle className="size-4" /> Chat with us
             </a>
           </div>
@@ -376,38 +376,3 @@ export default async function HomePage() {
   );
 }
 
-function CategoryCard({
-  href,
-  label,
-  count,
-  icon,
-  blurb,
-}: {
-  href: string;
-  label: string;
-  count: number;
-  icon: React.ReactNode;
-  blurb: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-center gap-5 rounded-2xl border border-border/70 bg-card px-6 py-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-    >
-      <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-brand/15 bg-brand/8 text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
-        {icon}
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2">
-          {/* h3 auto-serif */}
-          <h3 className="text-lg font-semibold">{label}</h3>
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {count} available
-          </span>
-        </div>
-        <p className="mt-0.5 text-sm text-muted-foreground">{blurb}</p>
-      </div>
-      <ArrowRight className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-1 group-hover:text-brand" />
-    </Link>
-  );
-}

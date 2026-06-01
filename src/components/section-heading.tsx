@@ -19,20 +19,22 @@ export function SectionHeading({
   return (
     <div className={`mb-8 ${centred ? "text-center" : "flex items-end justify-between gap-4"}`}>
       <div className={centred ? "inline-block" : undefined}>
-        {/* Gold rule above title */}
-        <div className={`mb-2.5 h-px w-10 bg-gold ${centred ? "mx-auto" : ""}`} />
-        {/* h2 picks up global serif via CSS */}
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        {/* Gold rule */}
+        <div
+          className={`mb-3 h-px w-10 ${centred ? "mx-auto" : ""}`}
+          style={{ background: "linear-gradient(90deg, #c9973a, #f0c96a)" }}
+        />
+        <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-1.5 text-sm text-white/40">{subtitle}</p>
         )}
       </div>
       {href && !centred && (
         <Link
           href={href}
-          className="flex shrink-0 items-center gap-1 text-sm font-medium text-brand hover:underline"
+          className="flex shrink-0 items-center gap-1 text-sm font-medium text-[#c9973a] hover:text-[#f0c96a] transition-colors"
         >
           {linkLabel} <ArrowRight className="size-3.5" />
         </Link>
