@@ -1,0 +1,35 @@
+import type {
+  Lead,
+  LeadInput,
+  LeadStatus,
+  Vehicle,
+  VehicleFilters,
+  VehicleInput,
+  VehicleType,
+} from "@/lib/types";
+
+/**
+ * Storage-agnostic contract for inventory. The UI only ever talks to this
+ * interface, so swapping the mock store for Supabase (Phase 7) needs no
+ * changes in pages/components.
+ */
+export interface VehicleRepository {
+  list(filters?: VehicleFilters): Promise<Vehicle[]>;
+  getById(id: string): Promise<Vehicle | null>;
+  getFeatured(limit?: number): Promise<Vehicle[]>;
+  getSimilar(vehicle: Vehicle, limit?: number): Promise<Vehicle[]>;
+  create(input: VehicleInput): Promise<Vehicle>;
+  update(id: string, input: Partial<VehicleInput>): Promise<Vehicle | null>;
+  remove(id: string): Promise<boolean>;
+  incrementViews(id: string): Promise<void>;
+  /** Distinct makes for filter dropdowns, optionally scoped to a type. */
+  distinctMakes(type?: VehicleType): Promise<string[]>;
+}
+
+export interface LeadRepository {
+  list(): Promise<Lead[]>;
+  create(input: LeadInput): Promise<Lead>;
+  updateStatus(id: string, status: LeadStatus): Promise<Lead | null>;
+  /** Map of vehicleId -> lead count, for the admin analytics column. */
+  countByVehicle(): Promise<Record<string, number>>;
+}
