@@ -30,6 +30,7 @@ import type {
   VehicleVariant,
 } from "@/lib/types";
 import { saveVehicleAction } from "@/app/actions/admin";
+import { ComboSelect } from "@/components/ui/combo-select";
 
 const FUELS: FuelType[] = ["petrol", "diesel", "cng", "electric", "hybrid"];
 const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
@@ -231,38 +232,23 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
                 )}
               </div>
             ) : (
-              <Select
+              <ComboSelect
                 value={makeOptions.some((m) => m.name === form.make) ? form.make : ""}
-                onValueChange={(v) => {
-                  const val = v ?? "";
+                onChange={(val) => {
                   if (val === "__other__") {
-                    setCustomMake(true);
-                    setCustomModel(true);
-                    setCustomVariant(true);
-                    set("make", "");
-                    set("model", "");
-                    set("variant", "");
+                    setCustomMake(true); setCustomModel(true); setCustomVariant(true);
+                    set("make", ""); set("model", ""); set("variant", "");
                   } else {
-                    set("make", val);
-                    set("model", "");
-                    set("variant", "");
-                    setCustomModel(false);
-                    setCustomVariant(false);
+                    set("make", val); set("model", ""); set("variant", "");
+                    setCustomModel(false); setCustomVariant(false);
                   }
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select make" />
-                </SelectTrigger>
-                <SelectContent>
-                  {makeOptions.map((m) => (
-                    <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
-                  ))}
-                  <SelectItem value="__other__" className="text-muted-foreground italic">
-                    Other — enter manually
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                options={makeOptions.map((m) => ({ value: m.name, label: m.name }))}
+                placeholder="Select make"
+                showAll={false}
+                otherLabel="Other — enter manually"
+                triggerClassName="w-full"
+              />
             )}
           </Field>
 
@@ -293,35 +279,24 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
                 )}
               </div>
             ) : (
-              <Select
+              <ComboSelect
                 value={modelOptions.some((m) => m.name === form.model) ? form.model : ""}
-                onValueChange={(v) => {
-                  const val = v ?? "";
+                onChange={(val) => {
                   if (val === "__other__") {
-                    setCustomModel(true);
-                    setCustomVariant(true);
-                    set("model", "");
-                    set("variant", "");
+                    setCustomModel(true); setCustomVariant(true);
+                    set("model", ""); set("variant", "");
                   } else {
-                    set("model", val);
-                    set("variant", "");
+                    set("model", val); set("variant", "");
                     setCustomVariant(false);
                   }
                 }}
+                options={modelOptions.map((m) => ({ value: m.name, label: m.name }))}
+                placeholder={form.make ? (modelOptions.length ? "Select model" : "No models yet") : "Select make first"}
+                showAll={false}
+                otherLabel="Other — enter manually"
                 disabled={!form.make}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={form.make ? (modelOptions.length ? "Select model" : "No models — enter manually") : "Select make first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {modelOptions.map((m) => (
-                    <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
-                  ))}
-                  <SelectItem value="__other__" className="text-muted-foreground italic">
-                    Other — enter manually
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                triggerClassName="w-full"
+              />
             )}
           </Field>
 

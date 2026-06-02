@@ -10,6 +10,8 @@ interface ComboSelectProps {
   options: { value: string; label: string }[];
   placeholder?: string;
   allLabel?: string;
+  otherLabel?: string;   // if set, shows "Other — enter manually" at bottom
+  showAll?: boolean;     // whether to show the "All" option (default false)
   disabled?: boolean;
   className?: string;
   triggerClassName?: string;
@@ -21,6 +23,8 @@ export function ComboSelect({
   options,
   placeholder = "Select…",
   allLabel = "All",
+  otherLabel,
+  showAll = true,
   disabled = false,
   triggerClassName,
 }: ComboSelectProps) {
@@ -105,14 +109,16 @@ export function ComboSelect({
           {/* Options list */}
           <ul className="max-h-52 overflow-y-auto py-1">
             {/* All option */}
-            <li>
-              <button type="button" onClick={() => select("")}
-                className={cn("flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-accent",
-                  value === "" && "font-medium text-foreground")}>
-                <Check className={cn("size-3 shrink-0", value === "" ? "opacity-100" : "opacity-0")} />
-                {allLabel}
-              </button>
-            </li>
+            {showAll && (
+              <li>
+                <button type="button" onClick={() => select("")}
+                  className={cn("flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-accent",
+                    value === "" && "font-medium text-foreground")}>
+                  <Check className={cn("size-3 shrink-0", value === "" ? "opacity-100" : "opacity-0")} />
+                  {allLabel}
+                </button>
+              </li>
+            )}
 
             {filtered.length === 0 && (
               <li className="px-2.5 py-3 text-center text-xs text-muted-foreground">No results</li>
@@ -128,6 +134,20 @@ export function ComboSelect({
                 </button>
               </li>
             ))}
+
+            {/* Other option — always visible, not filtered */}
+            {otherLabel && (
+              <>
+                <li className="mx-2 my-1 border-t" />
+                <li>
+                  <button type="button" onClick={() => select("__other__")}
+                    className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs italic text-muted-foreground transition-colors hover:bg-accent">
+                    <Check className="size-3 shrink-0 opacity-0" />
+                    {otherLabel}
+                  </button>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}
