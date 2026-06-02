@@ -27,6 +27,19 @@ const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
 const CAR_BODY = ["Hatchback", "Sedan", "SUV", "MUV", "Coupe", "Convertible"];
 const BIKE_BODY = ["Commuter", "Sport", "Cruiser", "Scooter", "Adventure", "Cafe Racer"];
 
+const CAR_MAKES = [
+  "Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Kia",
+  "Honda", "Toyota", "Renault", "Nissan", "Volkswagen",
+  "Skoda", "MG Motor", "Jeep", "Citroen", "BYD",
+  "Audi", "BMW", "Mercedes-Benz", "Volvo", "Force Motors",
+];
+
+const BIKE_MAKES = [
+  "Hero MotoCorp", "Honda", "Bajaj", "TVS", "Royal Enfield",
+  "Suzuki", "Yamaha", "KTM", "Jawa", "Triumph",
+  "Harley-Davidson", "BMW Motorrad", "Ola Electric", "Ather", "Revolt",
+];
+
 function defaults(): VehicleInput {
   return {
     type: "car",
@@ -65,6 +78,10 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     vehicle ? fromVehicle(vehicle) : defaults(),
   );
   const [submitting, setSubmitting] = useState(false);
+  const makeOptions = form.type === "car" ? CAR_MAKES : BIKE_MAKES;
+  const [customMake, setCustomMake] = useState<boolean>(
+    vehicle ? !makeOptions.includes(vehicle.make) : false,
+  );
 
   const maxImages =
     form.type === "car" ? siteConfig.limits.carImages : siteConfig.limits.bikeImages;
@@ -74,6 +91,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   }
 
   function switchType(type: VehicleType) {
+    setCustomMake(false);
     setForm((f) => {
       const max = type === "car" ? siteConfig.limits.carImages : siteConfig.limits.bikeImages;
       const images = f.images.slice(0, max);
@@ -138,12 +156,45 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       <Card title="Details">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Make" required>
-            <Input
-              value={form.make}
-              onChange={(e) => set("make", e.target.value)}
-              placeholder="e.g. Maruti Suzuki"
-              required
-            />
+            {customMake ? (
+              <div className="flex gap-2">
+                <Input
+                  value={form.make}
+                  onChange={(e) => set("make", e.target.value)}
+                  placeholder="Enter make manually"
+                  required
+                  autoFocus
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 text-xs"
+                  onClick={() => { setCustomMake(false); set("make", ""); }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Select
+                value={makeOptions.includes(form.make) ? form.make : ""}
+                onValueChange={(v) => {
+                  if (v === "__other__") { setCustomMake(true); set("make", ""); }
+                  else set("make", v);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select make" />
+                </SelectTrigger>
+                <SelectContent>
+                  {makeOptions.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                  <SelectItem value="__other__" className="text-muted-foreground italic">
+                    Other — enter manually
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </Field>
           <Field label="Model" required>
             <Input
