@@ -19,27 +19,29 @@ import {
 import { MediaUploader } from "./media-uploader";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import type { FuelType, Transmission, Vehicle, VehicleInput, VehicleType } from "@/lib/types";
+import type {
+  FuelType,
+  Transmission,
+  Vehicle,
+  VehicleInput,
+  VehicleMake,
+  VehicleModel,
+  VehicleType,
+  VehicleVariant,
+} from "@/lib/types";
 import { saveVehicleAction } from "@/app/actions/admin";
-import { CAR_MAKES_DATA, BIKE_MAKES_DATA } from "@/lib/vehicle-makes-data";
 
 const FUELS: FuelType[] = ["petrol", "diesel", "cng", "electric", "hybrid"];
 const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
 const CAR_BODY = ["Hatchback", "Sedan", "SUV", "MUV", "Coupe", "Convertible"];
 const BIKE_BODY = ["Commuter", "Sport", "Cruiser", "Scooter", "Adventure", "Cafe Racer"];
 
-const CAR_MAKES = [
-  "Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Kia",
-  "Honda", "Toyota", "Renault", "Nissan", "Volkswagen",
-  "Skoda", "MG Motor", "Jeep", "Citroen", "BYD",
-  "Audi", "BMW", "Mercedes-Benz", "Volvo", "Force Motors",
-];
-
-const BIKE_MAKES = [
-  "Hero MotoCorp", "Honda", "Bajaj", "TVS", "Royal Enfield",
-  "Suzuki", "Yamaha", "KTM", "Jawa", "Triumph",
-  "Harley-Davidson", "BMW Motorrad", "Ola Electric", "Ather", "Revolt",
-];
+interface VehicleFormProps {
+  vehicle?: Vehicle;
+  makes: VehicleMake[];
+  models: VehicleModel[];
+  variants: VehicleVariant[];
+}
 
 function defaults(): VehicleInput {
   return {
@@ -73,27 +75,48 @@ function fromVehicle(v: Vehicle): VehicleInput {
   return { ...rest, variant: v.variant ?? "" };
 }
 
-export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
+export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<VehicleInput>(
     vehicle ? fromVehicle(vehicle) : defaults(),
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const makesData = form.type === "car" ? CAR_MAKES_DATA : BIKE_MAKES_DATA;
-  const makeOptions = Object.keys(makesData);
-  const modelOptions = form.make && makesData[form.make] ? Object.keys(makesData[form.make]) : [];
-  const variantOptions = form.make && form.model && makesData[form.make]?.[form.model] ? makesData[form.make][form.model] : [];
+  // Catalog options scoped to selected vehicle type
+  const makeOptions = makes.filter((m) => m.type === form.type);
 
-  const [customMake, setCustomMake] = useState<boolean>(
-    vehicle ? !makeOptions.includes(vehicle.make) : false,
-  );
-  const [customModel, setCustomModel] = useState<boolean>(
-    vehicle ? Boolean(vehicle.make && makesData[vehicle.make] && !Object.keys(makesData[vehicle.make] ?? {}).includes(vehicle.model ?? "")) : false,
-  );
-  const [customVariant, setCustomVariant] = useState<boolean>(
-    vehicle ? Boolean(vehicle.model && vehicle.variant && !(makesData[vehicle.make ?? ""]?.[vehicle.model ?? ""] ?? []).includes(vehicle.variant)) : false,
-  );
+  // Find the currently-selected make object (match by name + type)
+  const selectedMakeObj = makeOptions.find((m) => m.name === form.make);
+  const modelOptions = selectedMakeObj
+    ? models.filter((m) => m.makeId === selectedMakeObj.id)
+    : [];
+
+  // Find the currently-selected model object
+  const selectedModelObj = modelOptions.find((m) => m.name === form.model);
+  const variantOptions = selectedModelObj
+    ? variants.filter((v) => v.modelId === selectedModelObj.id)
+    : [];
+
+  // Custom (manual) entry flags — true when value is outside the catalog list
+  const [customMake, setCustomMake] = useState<boolean>(() => {
+    if (!vehicle?.make) return false;
+    return !makes.some((m) => m.name === vehicle.make && m.type === vehicle.type);
+  });
+  const [customModel, setCustomModel] = useState<boolean>(() => {
+    if (!vehicle?.model || customMake) return false;
+    const mObj = makes.find((m) => m.name === vehicle.make && m.type === vehicle.type);
+    if (!mObj) return false;
+    return !models.some((m) => m.makeId === mObj.id && m.name === vehicle.model);
+  });
+  const [customVariant, setCustomVariant] = useState<boolean>(() => {
+    if (!vehicle?.variant || customModel) return false;
+    const mObj = makes.find((m) => m.name === vehicle.make && m.type === vehicle.type);
+    const mdObj = mObj ? models.find((m) => m.makeId === mObj.id && m.name === vehicle.model) : undefined;
+    if (!mdObj) return false;
+    return !variants.some((v) => v.modelId === mdObj.id && v.name === vehicle.variant);
+  });
+
+  const hasMakes = makeOptions.length > 0;
 
   const maxImages =
     form.type === "car" ? siteConfig.limits.carImages : siteConfig.limits.bikeImages;
@@ -112,10 +135,11 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       return {
         ...f,
         type,
+        make: "",
+        model: "",
+        variant: "",
         images,
-        primaryImageUrl: images.includes(f.primaryImageUrl)
-          ? f.primaryImageUrl
-          : (images[0] ?? ""),
+        primaryImageUrl: images.includes(f.primaryImageUrl) ? f.primaryImageUrl : (images[0] ?? ""),
         fuelType: type === "car" ? (f.fuelType ?? "petrol") : undefined,
         transmission: type === "car" ? (f.transmission ?? "manual") : undefined,
         engineCc: type === "bike" ? (f.engineCc ?? 0) : undefined,
@@ -164,41 +188,51 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             );
           })}
         </div>
+        {!hasMakes && (
+          <p className="mt-2 text-xs text-amber-500">
+            No {form.type} makes in catalog yet —{" "}
+            <a href="/admin/catalog" className="underline">add them in Catalog</a>{" "}
+            or enter manually below.
+          </p>
+        )}
       </Card>
 
       {/* Core details */}
       <Card title="Details">
         <div className="grid gap-4 sm:grid-cols-2">
+
           {/* Make */}
           <Field label="Make" required>
-            {customMake ? (
+            {customMake || !hasMakes ? (
               <div className="flex gap-2">
                 <Input
                   value={form.make}
-                  onChange={(e) => set("make", e.target.value)}
-                  placeholder="Enter make manually"
+                  onChange={(e) => { set("make", e.target.value); set("model", ""); set("variant", ""); }}
+                  placeholder="e.g. Maruti Suzuki"
                   required
-                  autoFocus
+                  autoFocus={customMake}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="shrink-0 text-xs"
-                  onClick={() => {
-                    setCustomMake(false);
-                    setCustomModel(false);
-                    setCustomVariant(false);
-                    set("make", "");
-                    set("model", "");
-                    set("variant", "");
-                  }}
-                >
-                  Cancel
-                </Button>
+                {customMake && hasMakes && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 text-xs"
+                    onClick={() => {
+                      setCustomMake(false);
+                      setCustomModel(false);
+                      setCustomVariant(false);
+                      set("make", "");
+                      set("model", "");
+                      set("variant", "");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </div>
             ) : (
               <Select
-                value={makeOptions.includes(form.make) ? form.make : ""}
+                value={makeOptions.some((m) => m.name === form.make) ? form.make : ""}
                 onValueChange={(v) => {
                   if (v === "__other__") {
                     setCustomMake(true);
@@ -221,7 +255,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 </SelectTrigger>
                 <SelectContent>
                   {makeOptions.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                    <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
                   ))}
                   <SelectItem value="__other__" className="text-muted-foreground italic">
                     Other — enter manually
@@ -233,15 +267,15 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
           {/* Model */}
           <Field label="Model" required>
-            {customMake || customModel ? (
+            {customMake || customModel || (!hasMakes) ? (
               <div className="flex gap-2">
                 <Input
                   value={form.model}
                   onChange={(e) => { set("model", e.target.value); set("variant", ""); }}
-                  placeholder="Enter model manually"
+                  placeholder="e.g. Swift"
                   required
                 />
-                {!customMake && (
+                {customModel && !customMake && hasMakes && (
                   <Button
                     type="button"
                     variant="outline"
@@ -259,7 +293,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </div>
             ) : (
               <Select
-                value={modelOptions.includes(form.model) ? form.model : ""}
+                value={modelOptions.some((m) => m.name === form.model) ? form.model : ""}
                 onValueChange={(v) => {
                   if (v === "__other__") {
                     setCustomModel(true);
@@ -275,17 +309,15 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 disabled={!form.make}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={form.make ? "Select model" : "Select make first"} />
+                  <SelectValue placeholder={form.make ? (modelOptions.length ? "Select model" : "No models — enter manually") : "Select make first"} />
                 </SelectTrigger>
                 <SelectContent>
                   {modelOptions.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                    <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>
                   ))}
-                  {modelOptions.length > 0 && (
-                    <SelectItem value="__other__" className="text-muted-foreground italic">
-                      Other — enter manually
-                    </SelectItem>
-                  )}
+                  <SelectItem value="__other__" className="text-muted-foreground italic">
+                    Other — enter manually
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -293,14 +325,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
           {/* Variant */}
           <Field label="Variant">
-            {customMake || customModel || customVariant ? (
+            {customMake || customModel || customVariant || (!hasMakes) ? (
               <div className="flex gap-2">
                 <Input
                   value={form.variant ?? ""}
                   onChange={(e) => set("variant", e.target.value)}
-                  placeholder="Enter variant manually"
+                  placeholder="e.g. ZXI+"
                 />
-                {!customMake && !customModel && (
+                {customVariant && !customMake && !customModel && hasMakes && (
                   <Button
                     type="button"
                     variant="outline"
@@ -316,7 +348,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </div>
             ) : (
               <Select
-                value={variantOptions.includes(form.variant ?? "") ? (form.variant ?? "") : ""}
+                value={variantOptions.some((v) => v.name === form.variant) ? (form.variant ?? "") : ""}
                 onValueChange={(v) => {
                   if (v === "__other__") {
                     setCustomVariant(true);
@@ -328,21 +360,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 disabled={!form.model}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={form.model ? "Select variant" : "Select model first"} />
+                  <SelectValue placeholder={form.model ? (variantOptions.length ? "Select variant" : "No variants — enter manually") : "Select model first"} />
                 </SelectTrigger>
                 <SelectContent>
                   {variantOptions.map((v) => (
-                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                    <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
                   ))}
-                  {variantOptions.length > 0 && (
-                    <SelectItem value="__other__" className="text-muted-foreground italic">
-                      Other — enter manually
-                    </SelectItem>
-                  )}
+                  <SelectItem value="__other__" className="text-muted-foreground italic">
+                    Other — enter manually
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
           </Field>
+
           <Field label="Production Year" required>
             <Input
               type="number"
@@ -384,8 +415,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               <SelectContent>
                 {[1, 2, 3, 4, 5].map((n) => (
                   <SelectItem key={n} value={String(n)}>
-                    {n}
-                    {n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"} Owner
+                    {n}{n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"} Owner
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -420,9 +450,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                   </SelectTrigger>
                   <SelectContent>
                     {FUELS.map((f) => (
-                      <SelectItem key={f} value={f} className="capitalize">
-                        {f}
-                      </SelectItem>
+                      <SelectItem key={f} value={f} className="capitalize">{f}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -437,9 +465,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                   </SelectTrigger>
                   <SelectContent>
                     {TRANSMISSIONS.map((t) => (
-                      <SelectItem key={t} value={t} className="capitalize">
-                        {t}
-                      </SelectItem>
+                      <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -469,9 +495,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </SelectTrigger>
               <SelectContent>
                 {bodyOptions.map((b) => (
-                  <SelectItem key={b} value={b}>
-                    {b}
-                  </SelectItem>
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -83,6 +83,38 @@ export type VehicleSort =
   | "year-desc"
   | "kms-asc";
 
+// ── Catalog: Make / Model / Variant ─────────────────────────────────────────
+
+export interface VehicleMake {
+  id: string;
+  name: string;
+  type: VehicleType;
+  createdAt: string;
+}
+
+export interface VehicleModel {
+  id: string;
+  makeId: string;
+  makeName: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface VehicleVariant {
+  id: string;
+  modelId: string;
+  modelName: string;
+  makeName: string;
+  name: string;
+  createdAt: string;
+}
+
+export type VehicleMakeInput = Pick<VehicleMake, "name" | "type">;
+export type VehicleModelInput = Pick<VehicleModel, "makeId" | "name">;
+export type VehicleVariantInput = Pick<VehicleVariant, "modelId" | "name">;
+
+// ── Finance ──────────────────────────────────────────────────────────────────
+
 export interface FinanceCompany {
   id: string;
   name: string;

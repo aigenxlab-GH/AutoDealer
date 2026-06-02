@@ -7,7 +7,13 @@ import type {
   Vehicle,
   VehicleFilters,
   VehicleInput,
+  VehicleMake,
+  VehicleMakeInput,
+  VehicleModel,
+  VehicleModelInput,
   VehicleType,
+  VehicleVariant,
+  VehicleVariantInput,
 } from "@/lib/types";
 
 /**
@@ -34,6 +40,20 @@ export interface LeadRepository {
   updateStatus(id: string, status: LeadStatus): Promise<Lead | null>;
   /** Map of vehicleId -> lead count, for the admin analytics column. */
   countByVehicle(): Promise<Record<string, number>>;
+}
+
+export interface CatalogRepository {
+  listMakes(type?: VehicleType): Promise<VehicleMake[]>;
+  createMake(input: VehicleMakeInput): Promise<VehicleMake>;
+  deleteMake(id: string): Promise<boolean>;
+
+  listModels(makeId?: string): Promise<VehicleModel[]>;
+  createModel(input: VehicleModelInput): Promise<VehicleModel>;
+  deleteModel(id: string): Promise<boolean>;
+
+  listVariants(modelId?: string): Promise<VehicleVariant[]>;
+  createVariant(input: VehicleVariantInput): Promise<VehicleVariant>;
+  deleteVariant(id: string): Promise<boolean>;
 }
 
 export interface FinanceCompanyRepository {

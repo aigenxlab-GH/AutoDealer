@@ -7,10 +7,16 @@ import type {
   Vehicle,
   VehicleFilters,
   VehicleInput,
+  VehicleMake,
+  VehicleMakeInput,
+  VehicleModel,
+  VehicleModelInput,
   VehicleSort,
   VehicleType,
+  VehicleVariant,
+  VehicleVariantInput,
 } from "@/lib/types";
-import type { FinanceCompanyRepository, LeadRepository, VehicleRepository } from "@/lib/data/repository";
+import type { CatalogRepository, FinanceCompanyRepository, LeadRepository, VehicleRepository } from "@/lib/data/repository";
 import { seedVehicles } from "./vehicles";
 import { seedLeads } from "./leads";
 import { seedFinanceCompanies } from "./finance-companies";
@@ -21,17 +27,30 @@ interface MockStore {
   vehicles: Vehicle[];
   leads: Lead[];
   financeCompanies: FinanceCompany[];
+  makes: VehicleMake[];
+  models: VehicleModel[];
+  variants: VehicleVariant[];
 }
 
 const globalForMock = globalThis as unknown as { __mockStore?: MockStore };
 
-const store: MockStore =
-  globalForMock.__mockStore ??
-  (globalForMock.__mockStore = {
+if (!globalForMock.__mockStore) {
+  globalForMock.__mockStore = {
     vehicles: seedVehicles.map((v) => ({ ...v, images: [...v.images] })),
     leads: seedLeads.map((l) => ({ ...l })),
     financeCompanies: seedFinanceCompanies.map((f) => ({ ...f })),
-  });
+    makes: [],
+    models: [],
+    variants: [],
+  };
+}
+
+const store = globalForMock.__mockStore;
+
+// Patch fields added after the store was first created (HMR with stale globalThis)
+if (!store.makes) store.makes = [];
+if (!store.models) store.models = [];
+if (!store.variants) store.variants = [];
 
 const clone = <T>(value: T): T =>
   typeof structuredClone === "function"
@@ -240,3 +259,75 @@ class MockFinanceCompanyRepository implements FinanceCompanyRepository {
 export const mockVehicleRepository = new MockVehicleRepository();
 export const mockLeadRepository = new MockLeadRepository();
 export const mockFinanceCompanyRepository = new MockFinanceCompanyRepository();
+
+class MockCatalogRepository implements CatalogRepository {
+  async listMakes(type?: VehicleType): Promise<VehicleMake[]> {
+    const result = type ? store.makes.filter((m) => m.type === type) : [...store.makes];
+    return clone(result.sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  async createMake(input: VehicleMakeInput): Promise<VehicleMake> {
+    const make: VehicleMake = { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+    store.makes.push(make);
+    return clone(make);
+  }
+
+  async deleteMake(id: string): Promise<boolean> {
+    const before = store.makes.length;
+    const modelsToDelete = store.models.filter((m) => m.makeId === id).map((m) => m.id);
+    store.variants = store.variants.filter((v) => !modelsToDelete.includes(v.modelId));
+    store.models = store.models.filter((m) => m.makeId !== id);
+    store.makes = store.makes.filter((m) => m.id !== id);
+    return store.makes.length < before;
+  }
+
+  async listModels(makeId?: string): Promise<VehicleModel[]> {
+    const result = makeId ? store.models.filter((m) => m.makeId === makeId) : [...store.models];
+    return clone(result.sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  async createModel(input: VehicleModelInput): Promise<VehicleModel> {
+    const make = store.makes.find((m) => m.id === input.makeId);
+    const model: VehicleModel = {
+      ...input,
+      makeName: make?.name ?? "",
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    store.models.push(model);
+    return clone(model);
+  }
+
+  async deleteModel(id: string): Promise<boolean> {
+    const before = store.models.length;
+    store.variants = store.variants.filter((v) => v.modelId !== id);
+    store.models = store.models.filter((m) => m.id !== id);
+    return store.models.length < before;
+  }
+
+  async listVariants(modelId?: string): Promise<VehicleVariant[]> {
+    const result = modelId ? store.variants.filter((v) => v.modelId === modelId) : [...store.variants];
+    return clone(result.sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  async createVariant(input: VehicleVariantInput): Promise<VehicleVariant> {
+    const model = store.models.find((m) => m.id === input.modelId);
+    const variant: VehicleVariant = {
+      ...input,
+      modelName: model?.name ?? "",
+      makeName: model?.makeName ?? "",
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    store.variants.push(variant);
+    return clone(variant);
+  }
+
+  async deleteVariant(id: string): Promise<boolean> {
+    const before = store.variants.length;
+    store.variants = store.variants.filter((v) => v.id !== id);
+    return store.variants.length < before;
+  }
+}
+
+export const mockCatalogRepository = new MockCatalogRepository();

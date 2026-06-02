@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { vehicleRepository, leadRepository, financeCompanyRepository } from "@/lib/data";
+import { vehicleRepository, leadRepository, financeCompanyRepository, catalogRepository } from "@/lib/data";
 import { getAdminSession } from "@/lib/auth-server";
-import type { FinanceCompanyInput, LeadStatus, VehicleInput } from "@/lib/types";
+import type { FinanceCompanyInput, LeadStatus, VehicleMakeInput, VehicleModelInput, VehicleVariantInput, VehicleInput } from "@/lib/types";
 
 async function requireAdmin() {
   const session = await getAdminSession();
@@ -144,4 +144,53 @@ export async function toggleFinanceCompanyAction(
   revalidatePath("/admin/finance");
   revalidatePath("/finance");
   return { ok: !!updated };
+}
+
+// ── Catalog actions ──────────────────────────────────────────────────────────
+
+export async function createMakeAction(input: VehicleMakeInput): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  if (!input.name?.trim()) return { ok: false, error: "Name is required." };
+  await catalogRepository.createMake({ ...input, name: input.name.trim() });
+  revalidatePath("/admin/catalog");
+  return { ok: true };
+}
+
+export async function deleteMakeAction(id: string): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const ok = await catalogRepository.deleteMake(id);
+  revalidatePath("/admin/catalog");
+  return { ok };
+}
+
+export async function createModelAction(input: VehicleModelInput): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  if (!input.name?.trim()) return { ok: false, error: "Name is required." };
+  if (!input.makeId) return { ok: false, error: "Make is required." };
+  await catalogRepository.createModel({ ...input, name: input.name.trim() });
+  revalidatePath("/admin/catalog");
+  return { ok: true };
+}
+
+export async function deleteModelAction(id: string): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const ok = await catalogRepository.deleteModel(id);
+  revalidatePath("/admin/catalog");
+  return { ok };
+}
+
+export async function createVariantAction(input: VehicleVariantInput): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  if (!input.name?.trim()) return { ok: false, error: "Name is required." };
+  if (!input.modelId) return { ok: false, error: "Model is required." };
+  await catalogRepository.createVariant({ ...input, name: input.name.trim() });
+  revalidatePath("/admin/catalog");
+  return { ok: true };
+}
+
+export async function deleteVariantAction(id: string): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const ok = await catalogRepository.deleteVariant(id);
+  revalidatePath("/admin/catalog");
+  return { ok };
 }

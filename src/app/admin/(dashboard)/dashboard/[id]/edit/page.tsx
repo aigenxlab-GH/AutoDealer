@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { vehicleRepository } from "@/lib/data";
+import { vehicleRepository, catalogRepository } from "@/lib/data";
 import { VehicleForm } from "@/components/admin/vehicle-form";
 
 export const metadata: Metadata = {
@@ -16,7 +16,12 @@ export default async function EditVehiclePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const vehicle = await vehicleRepository.getById(id);
+  const [vehicle, makes, models, variants] = await Promise.all([
+    vehicleRepository.getById(id),
+    catalogRepository.listMakes(),
+    catalogRepository.listModels(),
+    catalogRepository.listVariants(),
+  ]);
   if (!vehicle) notFound();
 
   return (
@@ -32,7 +37,7 @@ export default async function EditVehiclePage({
           Edit {vehicle.year} {vehicle.make} {vehicle.model}
         </h1>
       </div>
-      <VehicleForm vehicle={vehicle} />
+      <VehicleForm vehicle={vehicle} makes={makes} models={models} variants={variants} />
     </div>
   );
 }

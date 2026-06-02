@@ -1,5 +1,6 @@
-import type { LeadRepository, VehicleRepository } from "./repository";
+import type { CatalogRepository, LeadRepository, VehicleRepository } from "./repository";
 import {
+  mockCatalogRepository,
   mockFinanceCompanyRepository,
   mockLeadRepository,
   mockVehicleRepository,
@@ -25,6 +26,7 @@ function resolve(): {
   vehicles: VehicleRepository;
   leads: LeadRepository;
   finance: import("./repository").FinanceCompanyRepository;
+  catalog: CatalogRepository;
 } {
   switch (source) {
     case "neon":
@@ -32,12 +34,14 @@ function resolve(): {
         vehicles: neonVehicleRepository,
         leads: neonLeadRepository,
         finance: neonFinanceCompanyRepository,
+        catalog: mockCatalogRepository,
       };
     case "supabase":
       return {
         vehicles: supabaseVehicleRepository,
         leads: supabaseLeadRepository,
         finance: mockFinanceCompanyRepository,
+        catalog: mockCatalogRepository,
       };
     case "mock":
     default:
@@ -45,6 +49,7 @@ function resolve(): {
         vehicles: mockVehicleRepository,
         leads: mockLeadRepository,
         finance: mockFinanceCompanyRepository,
+        catalog: mockCatalogRepository,
       };
   }
 }
@@ -54,5 +59,6 @@ const repos = resolve();
 export const vehicleRepository = repos.vehicles;
 export const leadRepository = repos.leads;
 export const financeCompanyRepository = repos.finance;
+export const catalogRepository = repos.catalog;
 
-export type { VehicleRepository, LeadRepository, FinanceCompanyRepository } from "./repository";
+export type { VehicleRepository, LeadRepository, FinanceCompanyRepository, CatalogRepository } from "./repository";
