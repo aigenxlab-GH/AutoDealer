@@ -198,7 +198,7 @@ class NeonVehicleRepository implements VehicleRepository {
   }
 
   async incrementViews(id: string): Promise<void> {
-    await query(`SELECT increment_vehicle_views($1)`, [id]);
+    await query(`UPDATE vehicles SET views = views + 1 WHERE id = $1::uuid`, [id]);
   }
 
   async distinctMakes(type?: VehicleType): Promise<string[]> {

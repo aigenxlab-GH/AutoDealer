@@ -39,12 +39,6 @@ CREATE INDEX IF NOT EXISTS vehicles_type_idx       ON vehicles (type);
 CREATE INDEX IF NOT EXISTS vehicles_is_sold_idx    ON vehicles (is_sold);
 CREATE INDEX IF NOT EXISTS vehicles_created_at_idx ON vehicles (created_at DESC);
 
--- Atomic view counter
-CREATE OR REPLACE FUNCTION increment_vehicle_views(vehicle UUID)
-RETURNS VOID LANGUAGE SQL AS $$
-  UPDATE vehicles SET views = views + 1 WHERE id = vehicle;
-$$;
-
 -- ---------------------------------------------------------------------------
 -- Leads
 -- ---------------------------------------------------------------------------
