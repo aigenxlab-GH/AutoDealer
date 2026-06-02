@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, Loader2, Pencil, Check, X, Car, Bike } from "lucide-react";
+import { Trash2, Plus, Loader2, Pencil, Check, X, Car, Bike, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -91,9 +91,11 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
   const [pending, startTransition] = useTransition();
   const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
 
-  // Add-form type follows the filter toggle
-  const filtered = makes.filter((m) => m.type === typeFilter);
+  const filtered = makes
+    .filter((m) => m.type === typeFilter)
+    .filter((m) => !search.trim() || m.name.toLowerCase().includes(search.toLowerCase()));
 
   function handleAdd() {
     if (!name.trim()) return;
@@ -142,9 +144,12 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
           </Button>
         </div>
       }
+      filter={
+        <SearchBar value={search} onChange={setSearch} placeholder="Search makes…" />
+      }
       headers={["Make Name", "Type"]}
     >
-      {filtered.length === 0 && <Empty text={`No ${typeFilter} makes yet. Add your first one above.`} cols={2} />}
+      {filtered.length === 0 && <Empty text={search ? `No makes match "${search}".` : `No ${typeFilter} makes yet. Add your first one above.`} cols={2} />}
       {filtered.map((m) => (
         <EditableRow key={m.id} label={m.name} badge={m.type} disabled={pending}
           onSave={(n) => handleUpdate(m.id, n)}
@@ -163,21 +168,23 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
   const [filterMakeName, setFilterMakeName] = useState("");
   const [addMakeName, setAddMakeName] = useState("");
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
 
-  // Only makes matching selected type
   const typedMakes = makes.filter((m) => m.type === typeFilter);
   const addMakeId  = typedMakes.find((m) => m.name === addMakeName)?.id ?? "";
   const filterMakeId = typedMakes.find((m) => m.name === filterMakeName)?.id ?? "";
 
-  // Models whose make matches the selected type
   const typedMakeIds = typedMakes.map((m) => m.id);
   const typeFilteredModels = models.filter((m) => typedMakeIds.includes(m.makeId));
-  const filtered = filterMakeId ? typeFilteredModels.filter((m) => m.makeId === filterMakeId) : typeFilteredModels;
+  const filtered = typeFilteredModels
+    .filter((m) => !filterMakeId || m.makeId === filterMakeId)
+    .filter((m) => !search.trim() || m.name.toLowerCase().includes(search.toLowerCase()) || m.makeName.toLowerCase().includes(search.toLowerCase()));
 
   function handleTypeChange(t: VehicleType) {
     setTypeFilter(t);
     setAddMakeName("");
     setFilterMakeName("");
+    setSearch("");
     setName("");
   }
 
@@ -234,22 +241,25 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
         </div>
       }
       filter={
-        typedMakes.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Filter by Make:</span>
-            <Select value={filterMakeName} onValueChange={(v) => setFilterMakeName(v ?? "")}>
-              <SelectTrigger className="h-7 w-40 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All makes</SelectItem>
-                {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchBar value={search} onChange={setSearch} placeholder="Search models or make…" />
+          {typedMakes.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Make:</span>
+              <Select value={filterMakeName} onValueChange={(v) => setFilterMakeName(v ?? "")}>
+                <SelectTrigger className="h-7 w-40 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All</SelectItem>
+                  {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       }
       headers={["Model Name", "Make"]}
     >
-      {filtered.length === 0 && <Empty text={filterMakeName ? "No models for this make yet." : `No ${typeFilter} models yet. Add your first one above.`} cols={2} />}
+      {filtered.length === 0 && <Empty text={search ? `No models match "${search}".` : filterMakeName ? "No models for this make yet." : `No ${typeFilter} models yet. Add your first one above.`} cols={2} />}
       {filtered.map((m) => (
         <EditableRow key={m.id} label={m.name} badge={m.makeName} disabled={pending}
           onSave={(n) => handleUpdate(m.id, n)}
@@ -270,6 +280,7 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
   const [filterMakeName, setFilterMakeName]   = useState("");
   const [filterModelName, setFilterModelName] = useState("");
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
 
   const typedMakes   = makes.filter((m) => m.type === typeFilter);
   const typedMakeIds = typedMakes.map((m) => m.id);
@@ -286,17 +297,16 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
     const model = models.find((m) => m.id === v.modelId);
     return model && typedMakeIds.includes(model.makeId);
   });
-  const filteredVariants = filterModelId
-    ? typeFilteredVariants.filter((v) => v.modelId === filterModelId)
-    : filterMakeId
-    ? typeFilteredVariants.filter((v) => filterModels.some((m) => m.id === v.modelId))
-    : typeFilteredVariants;
+  const filteredVariants = typeFilteredVariants
+    .filter((v) => !filterModelId || v.modelId === filterModelId)
+    .filter((v) => !filterMakeId || filterModels.some((m) => m.id === v.modelId))
+    .filter((v) => !search.trim() || v.name.toLowerCase().includes(search.toLowerCase()) || v.makeName.toLowerCase().includes(search.toLowerCase()) || v.modelName.toLowerCase().includes(search.toLowerCase()));
 
   function handleTypeChange(t: VehicleType) {
     setTypeFilter(t);
     setAddMakeName(""); setAddModelName("");
     setFilterMakeName(""); setFilterModelName("");
-    setName("");
+    setSearch(""); setName("");
   }
 
   function handleAdd() {
@@ -356,29 +366,33 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
         </div>
       }
       filter={
-        typedMakes.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span>Filter:</span>
-            <Select value={filterMakeName} onValueChange={(v) => { setFilterMakeName(v ?? ""); setFilterModelName(""); }}>
-              <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All makes</SelectItem>
-                {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterModelName} onValueChange={(v) => setFilterModelName(v ?? "")} disabled={!filterMakeName}>
-              <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All models" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All models</SelectItem>
-                {filterModels.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchBar value={search} onChange={setSearch} placeholder="Search variants, make or model…" />
+          {typedMakes.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span>Make:</span>
+              <Select value={filterMakeName} onValueChange={(v) => { setFilterMakeName(v ?? ""); setFilterModelName(""); }}>
+                <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All</SelectItem>
+                  {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <span>Model:</span>
+              <Select value={filterModelName} onValueChange={(v) => setFilterModelName(v ?? "")} disabled={!filterMakeName}>
+                <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All</SelectItem>
+                  {filterModels.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       }
       headers={["Variant Name", "Make", "Model"]}
     >
-      {filteredVariants.length === 0 && <Empty text={filterModelName ? "No variants for this model yet." : `No ${typeFilter} variants yet. Add your first one above.`} cols={3} />}
+      {filteredVariants.length === 0 && <Empty text={search ? `No variants match "${search}".` : filterModelName ? "No variants for this model yet." : `No ${typeFilter} variants yet. Add your first one above.`} cols={3} />}
       {filteredVariants.map((v) => (
         <EditableRow key={v.id} label={v.name} badge={v.makeName} badge2={v.modelName} disabled={pending}
           onSave={(n) => handleUpdate(v.id, n)}
@@ -389,6 +403,23 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
 }
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
+
+function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      <Input value={value} onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-7 w-52 pl-7 text-xs" />
+      {value && (
+        <button type="button" onClick={() => onChange("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <X className="size-3" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 function Section({ typeToggle, addForm, filter, headers, children }: {
   typeToggle: React.ReactNode;
