@@ -168,7 +168,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
     <Section
       addForm={
         <div className="flex flex-wrap gap-2">
-          <Select value={makeId} onValueChange={setMakeId}>
+          <Select value={makeId} onValueChange={(v) => setMakeId(v ?? "")}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
@@ -196,7 +196,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
         makes.length > 0 && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Filter:</span>
-            <Select value={makeId} onValueChange={setMakeId}>
+            <Select value={makeId} onValueChange={(v) => setMakeId(v ?? "")}>
               <SelectTrigger className="h-7 w-40 text-xs">
                 <SelectValue placeholder="All makes" />
               </SelectTrigger>
@@ -290,7 +290,7 @@ function VariantsTab({
               ))}
             </SelectContent>
           </Select>
-          <Select value={modelId} onValueChange={setModelId} disabled={!makeId}>
+          <Select value={modelId} onValueChange={(v) => setModelId(v ?? "")} disabled={!makeId}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder={makeId ? "Select model" : "Pick make first"} />
             </SelectTrigger>
@@ -329,7 +329,7 @@ function VariantsTab({
                 ))}
               </SelectContent>
             </Select>
-            <Select value={modelId} onValueChange={setModelId} disabled={!makeId}>
+            <Select value={modelId} onValueChange={(v) => setModelId(v ?? "")} disabled={!makeId}>
               <SelectTrigger className="h-7 w-36 text-xs">
                 <SelectValue placeholder="All models" />
               </SelectTrigger>
