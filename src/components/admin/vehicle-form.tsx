@@ -234,7 +234,8 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
               <Select
                 value={makeOptions.some((m) => m.name === form.make) ? form.make : ""}
                 onValueChange={(v) => {
-                  if (v === "__other__") {
+                  const val = v ?? "";
+                  if (val === "__other__") {
                     setCustomMake(true);
                     setCustomModel(true);
                     setCustomVariant(true);
@@ -242,7 +243,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
                     set("model", "");
                     set("variant", "");
                   } else {
-                    set("make", v);
+                    set("make", val);
                     set("model", "");
                     set("variant", "");
                     setCustomModel(false);
@@ -295,13 +296,14 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
               <Select
                 value={modelOptions.some((m) => m.name === form.model) ? form.model : ""}
                 onValueChange={(v) => {
-                  if (v === "__other__") {
+                  const val = v ?? "";
+                  if (val === "__other__") {
                     setCustomModel(true);
                     setCustomVariant(true);
                     set("model", "");
                     set("variant", "");
                   } else {
-                    set("model", v);
+                    set("model", val);
                     set("variant", "");
                     setCustomVariant(false);
                   }
@@ -350,11 +352,12 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
               <Select
                 value={variantOptions.some((v) => v.name === form.variant) ? (form.variant ?? "") : ""}
                 onValueChange={(v) => {
-                  if (v === "__other__") {
+                  const val = v ?? "";
+                  if (val === "__other__") {
                     setCustomVariant(true);
                     set("variant", "");
                   } else {
-                    set("variant", v);
+                    set("variant", val);
                   }
                 }}
                 disabled={!form.model}
@@ -407,7 +410,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
           <Field label="Owners">
             <Select
               value={String(form.owners)}
-              onValueChange={(v) => set("owners", Number(v))}
+              onValueChange={(v) => set("owners", Number(v ?? "1"))}
             >
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -443,7 +446,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
               <Field label="Fuel Type">
                 <Select
                   value={form.fuelType ?? "petrol"}
-                  onValueChange={(v) => set("fuelType", v as FuelType)}
+                  onValueChange={(v) => set("fuelType", (v ?? "petrol") as FuelType)}
                 >
                   <SelectTrigger className="w-full capitalize">
                     <SelectValue />
@@ -458,7 +461,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
               <Field label="Transmission">
                 <Select
                   value={form.transmission ?? "manual"}
-                  onValueChange={(v) => set("transmission", v as Transmission)}
+                  onValueChange={(v) => set("transmission", (v ?? "manual") as Transmission)}
                 >
                   <SelectTrigger className="w-full capitalize">
                     <SelectValue />
