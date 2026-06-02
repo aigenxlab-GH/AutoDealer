@@ -261,12 +261,6 @@ export const mockLeadRepository = new MockLeadRepository();
 export const mockFinanceCompanyRepository = new MockFinanceCompanyRepository();
 
 class MockCatalogRepository implements CatalogRepository {
-  async clearCatalog(): Promise<void> {
-    store.variants = [];
-    store.models = [];
-    store.makes = [];
-  }
-
   async listMakes(type?: VehicleType): Promise<VehicleMake[]> {
     const result = type ? store.makes.filter((m) => m.type === type) : [...store.makes];
     return clone(result.sort((a, b) => a.name.localeCompare(b.name)));

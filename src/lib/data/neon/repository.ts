@@ -282,11 +282,6 @@ class NeonFinanceCompanyRepository implements FinanceCompanyRepository {
 }
 
 class NeonCatalogRepository implements CatalogRepository {
-  async clearCatalog(): Promise<void> {
-    // CASCADE on vehicle_models and vehicle_variants handles children automatically
-    await query(`DELETE FROM vehicle_makes`);
-  }
-
   async listMakes(type?: VehicleType): Promise<VehicleMake[]> {
     const rows = type
       ? await query(`SELECT * FROM vehicle_makes WHERE type = $1 ORDER BY name`, [type])

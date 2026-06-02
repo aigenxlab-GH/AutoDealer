@@ -219,33 +219,3 @@ export async function deleteVariantAction(id: string): Promise<{ ok: boolean; er
   return { ok };
 }
 
-export async function seedCatalogAction(): Promise<{ ok: boolean; error?: string; stats?: { makes: number; models: number; variants: number } }> {
-  await requireAdmin();
-  try {
-    const { CAR_MAKES_DATA, BIKE_MAKES_DATA } = await import("@/lib/vehicle-makes-data");
-
-    await catalogRepository.clearCatalog();
-
-    let makeCount = 0, modelCount = 0, variantCount = 0;
-
-    for (const [type, data] of [["car", CAR_MAKES_DATA], ["bike", BIKE_MAKES_DATA]] as const) {
-      for (const [makeName, models] of Object.entries(data)) {
-        const make = await catalogRepository.createMake({ name: makeName, type });
-        makeCount++;
-        for (const [modelName, variants] of Object.entries(models)) {
-          const model = await catalogRepository.createModel({ makeId: make.id, name: modelName });
-          modelCount++;
-          for (const variantName of variants) {
-            await catalogRepository.createVariant({ modelId: model.id, name: variantName });
-            variantCount++;
-          }
-        }
-      }
-    }
-
-    revalidatePath("/admin/catalog");
-    return { ok: true, stats: { makes: makeCount, models: modelCount, variants: variantCount } };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
-}
