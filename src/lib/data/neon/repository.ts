@@ -7,9 +7,16 @@ import type {
   Vehicle,
   VehicleFilters,
   VehicleInput,
+  VehicleMake,
+  VehicleMakeInput,
+  VehicleModel,
+  VehicleModelInput,
   VehicleType,
+  VehicleVariant,
+  VehicleVariantInput,
 } from "@/lib/types";
 import type {
+  CatalogRepository,
   FinanceCompanyRepository,
   LeadRepository,
   VehicleRepository,
@@ -274,6 +281,119 @@ class NeonFinanceCompanyRepository implements FinanceCompanyRepository {
   }
 }
 
+class NeonCatalogRepository implements CatalogRepository {
+  async listMakes(type?: VehicleType): Promise<VehicleMake[]> {
+    const rows = type
+      ? await query(`SELECT * FROM vehicle_makes WHERE type = $1 ORDER BY name`, [type])
+      : await query(`SELECT * FROM vehicle_makes ORDER BY name`);
+    return rows.map((r: any) => ({ id: r.id, name: r.name, type: r.type, createdAt: r.created_at }));
+  }
+
+  async createMake(input: VehicleMakeInput): Promise<VehicleMake> {
+    const rows = await query(
+      `INSERT INTO vehicle_makes (name, type) VALUES ($1, $2)
+       ON CONFLICT (name, type) DO UPDATE SET name = EXCLUDED.name
+       RETURNING *`,
+      [input.name, input.type],
+    );
+    const r = rows[0];
+    return { id: r.id, name: r.name, type: r.type, createdAt: r.created_at };
+  }
+
+  async deleteMake(id: string): Promise<boolean> {
+    await query(`DELETE FROM vehicle_makes WHERE id = $1`, [id]);
+    return true;
+  }
+
+  async listModels(makeId?: string): Promise<VehicleModel[]> {
+    const rows = makeId
+      ? await query(
+          `SELECT m.*, mk.name AS make_name FROM vehicle_models m
+           JOIN vehicle_makes mk ON mk.id = m.make_id
+           WHERE m.make_id = $1 ORDER BY m.name`,
+          [makeId],
+        )
+      : await query(
+          `SELECT m.*, mk.name AS make_name FROM vehicle_models m
+           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY m.name`,
+        );
+    return rows.map((r: any) => ({
+      id: r.id, makeId: r.make_id, makeName: r.make_name,
+      name: r.name, createdAt: r.created_at,
+    }));
+  }
+
+  async createModel(input: VehicleModelInput): Promise<VehicleModel> {
+    const rows = await query(
+      `INSERT INTO vehicle_models (make_id, name) VALUES ($1, $2)
+       ON CONFLICT (make_id, name) DO UPDATE SET name = EXCLUDED.name
+       RETURNING *`,
+      [input.makeId, input.name],
+    );
+    const r = rows[0];
+    const makeRows = await query(`SELECT name FROM vehicle_makes WHERE id = $1`, [input.makeId]);
+    return {
+      id: r.id, makeId: r.make_id, makeName: makeRows[0]?.name ?? "",
+      name: r.name, createdAt: r.created_at,
+    };
+  }
+
+  async deleteModel(id: string): Promise<boolean> {
+    await query(`DELETE FROM vehicle_models WHERE id = $1`, [id]);
+    return true;
+  }
+
+  async listVariants(modelId?: string): Promise<VehicleVariant[]> {
+    const rows = modelId
+      ? await query(
+          `SELECT v.*, m.name AS model_name, mk.name AS make_name
+           FROM vehicle_variants v
+           JOIN vehicle_models m ON m.id = v.model_id
+           JOIN vehicle_makes mk ON mk.id = m.make_id
+           WHERE v.model_id = $1 ORDER BY v.name`,
+          [modelId],
+        )
+      : await query(
+          `SELECT v.*, m.name AS model_name, mk.name AS make_name
+           FROM vehicle_variants v
+           JOIN vehicle_models m ON m.id = v.model_id
+           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY v.name`,
+        );
+    return rows.map((r: any) => ({
+      id: r.id, modelId: r.model_id, modelName: r.model_name,
+      makeName: r.make_name, name: r.name, createdAt: r.created_at,
+    }));
+  }
+
+  async createVariant(input: VehicleVariantInput): Promise<VehicleVariant> {
+    const rows = await query(
+      `INSERT INTO vehicle_variants (model_id, name) VALUES ($1, $2)
+       ON CONFLICT (model_id, name) DO UPDATE SET name = EXCLUDED.name
+       RETURNING *`,
+      [input.modelId, input.name],
+    );
+    const r = rows[0];
+    const modelRows = await query(
+      `SELECT m.name AS model_name, mk.name AS make_name
+       FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id
+       WHERE m.id = $1`,
+      [input.modelId],
+    );
+    return {
+      id: r.id, modelId: r.model_id,
+      modelName: modelRows[0]?.model_name ?? "",
+      makeName: modelRows[0]?.make_name ?? "",
+      name: r.name, createdAt: r.created_at,
+    };
+  }
+
+  async deleteVariant(id: string): Promise<boolean> {
+    await query(`DELETE FROM vehicle_variants WHERE id = $1`, [id]);
+    return true;
+  }
+}
+
 export const neonVehicleRepository = new NeonVehicleRepository();
 export const neonLeadRepository = new NeonLeadRepository();
 export const neonFinanceCompanyRepository = new NeonFinanceCompanyRepository();
+export const neonCatalogRepository = new NeonCatalogRepository();

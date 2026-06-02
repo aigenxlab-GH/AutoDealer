@@ -13,6 +13,7 @@ import {
   neonVehicleRepository,
   neonLeadRepository,
   neonFinanceCompanyRepository,
+  neonCatalogRepository,
 } from "./neon/repository";
 
 // Selects the active backend. Defaults to "mock" so the app runs with zero
@@ -34,7 +35,7 @@ function resolve(): {
         vehicles: neonVehicleRepository,
         leads: neonLeadRepository,
         finance: neonFinanceCompanyRepository,
-        catalog: mockCatalogRepository,
+        catalog: neonCatalogRepository,
       };
     case "supabase":
       return {
