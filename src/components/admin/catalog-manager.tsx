@@ -40,7 +40,7 @@ export function CatalogManager({ makes, models, variants }: Props) {
     <div className="space-y-4">
       {/* Tab bar */}
       <div className="inline-flex rounded-lg border bg-muted p-1">
-        {(["variants", "models", "makes"] as Tab[]).map((t) => (
+        {(["makes", "models", "variants"] as Tab[]).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)}
             className={cn("rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors",
               tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
@@ -52,9 +52,9 @@ export function CatalogManager({ makes, models, variants }: Props) {
         ))}
       </div>
 
-      {tab === "variants" && <VariantsTab makes={makes} models={models} variants={variants} />}
-      {tab === "models"   && <ModelsTab   makes={makes} models={models} />}
       {tab === "makes"    && <MakesTab    makes={makes} />}
+      {tab === "models"   && <ModelsTab   makes={makes} models={models} />}
+      {tab === "variants" && <VariantsTab makes={makes} models={models} variants={variants} />}
     </div>
   );
 }
@@ -250,7 +250,6 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
       }
       filterBar={
         <div className="flex items-center gap-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Search models…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
           {typedMakes.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>Make:</span>
@@ -263,6 +262,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
               />
             </div>
           )}
+          <SearchBar value={search} onChange={setSearch} placeholder="Search models…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
         </div>
       }
       headers={["Model Name", "Make", "Actions"]}
@@ -377,7 +377,6 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
       }
       filterBar={
         <div className="flex flex-wrap items-center gap-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Search variants…" count={filtered.length} total={typedVariants.length} />
           {typedMakes.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>Make:</span>
@@ -399,6 +398,7 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
               />
             </div>
           )}
+          <SearchBar value={search} onChange={setSearch} placeholder="Search variants…" count={filtered.length} total={typedVariants.length} />
         </div>
       }
       headers={["Variant Name", "Make", "Model", "Actions"]}
