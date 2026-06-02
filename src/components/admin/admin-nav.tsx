@@ -8,6 +8,7 @@ import {
   LogOut,
   PlusCircle,
   Inbox,
+  Landmark,
   ExternalLink,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/admin/dashboard", label: "Inventory", icon: LayoutDashboard },
   { href: "/admin/dashboard/new", label: "Add Vehicle", icon: PlusCircle },
   { href: "/admin/leads", label: "Leads", icon: Inbox },
+  { href: "/admin/finance", label: "Finance", icon: Landmark },
 ];
 
 export function AdminNav({ email }: { email?: string }) {

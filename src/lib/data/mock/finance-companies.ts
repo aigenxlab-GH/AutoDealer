@@ -1,0 +1,58 @@
+import type { FinanceCompany } from "@/lib/types";
+
+export const seedFinanceCompanies: FinanceCompany[] = [
+  {
+    id: "fc-sbi",
+    name: "SBI Car Loan",
+    shortName: "SBI",
+    interestRate: 8.85,
+    maxTenureYears: 7,
+    processingFee: "0.50% (min ₹3,000)",
+    highlights: [
+      "Lowest rates for used cars",
+      "No prepayment penalty",
+      "Simple documentation",
+    ],
+    color: "#1a56db",
+    badge: "Most Popular",
+    isActive: true,
+    sortOrder: 1,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "fc-hdfc",
+    name: "HDFC Bank",
+    shortName: "HDFC",
+    interestRate: 9.40,
+    maxTenureYears: 7,
+    processingFee: "₹3,000 – ₹5,000",
+    highlights: [
+      "30-min approval decision",
+      "Minimal documentation",
+      "Doorstep service available",
+    ],
+    color: "#00558f",
+    badge: "Fastest Approval",
+    isActive: true,
+    sortOrder: 2,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "fc-bajaj",
+    name: "Bajaj Finance",
+    shortName: "Bajaj",
+    interestRate: 10.99,
+    maxTenureYears: 5,
+    processingFee: "Up to 3.54%",
+    highlights: [
+      "Pre-approved offers",
+      "High LTV ratio",
+      "Flexible repayment options",
+    ],
+    color: "#e67e00",
+    badge: "Flexible Terms",
+    isActive: true,
+    sortOrder: 3,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+];

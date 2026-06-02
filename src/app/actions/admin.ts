@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { vehicleRepository, leadRepository } from "@/lib/data";
+import { vehicleRepository, leadRepository, financeCompanyRepository } from "@/lib/data";
 import { getAdminSession } from "@/lib/auth-server";
-import type { LeadStatus, VehicleInput } from "@/lib/types";
+import type { FinanceCompanyInput, LeadStatus, VehicleInput } from "@/lib/types";
 
 async function requireAdmin() {
   const session = await getAdminSession();
@@ -84,5 +84,64 @@ export async function updateLeadStatusAction(
   await requireAdmin();
   const updated = await leadRepository.updateStatus(id, status);
   revalidatePath("/admin/leads");
+  return { ok: !!updated };
+}
+
+// ── Finance company actions ──────────────────────────────────────────────────
+
+export interface SaveFinanceCompanyResult {
+  ok: boolean;
+  id?: string;
+  error?: string;
+}
+
+function validateFinance(input: FinanceCompanyInput): string | null {
+  if (!input.name?.trim()) return "Company name is required.";
+  if (!input.shortName?.trim()) return "Short name is required.";
+  if (!input.interestRate || input.interestRate <= 0 || input.interestRate > 40)
+    return "Enter a valid interest rate (0.1% – 40%).";
+  if (!input.maxTenureYears || input.maxTenureYears < 1)
+    return "Max tenure must be at least 1 year.";
+  return null;
+}
+
+export async function saveFinanceCompanyAction(
+  input: FinanceCompanyInput,
+  id?: string,
+): Promise<SaveFinanceCompanyResult> {
+  await requireAdmin();
+  const error = validateFinance(input);
+  if (error) return { ok: false, error };
+
+  if (id) {
+    const updated = await financeCompanyRepository.update(id, input);
+    if (!updated) return { ok: false, error: "Finance company not found." };
+    revalidatePath("/admin/finance");
+    revalidatePath("/finance");
+    return { ok: true, id: updated.id };
+  }
+
+  const created = await financeCompanyRepository.create(input);
+  revalidatePath("/admin/finance");
+  revalidatePath("/finance");
+  return { ok: true, id: created.id };
+}
+
+export async function deleteFinanceCompanyAction(id: string): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const ok = await financeCompanyRepository.remove(id);
+  revalidatePath("/admin/finance");
+  revalidatePath("/finance");
+  return { ok };
+}
+
+export async function toggleFinanceCompanyAction(
+  id: string,
+  isActive: boolean,
+): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  const updated = await financeCompanyRepository.update(id, { isActive });
+  revalidatePath("/admin/finance");
+  revalidatePath("/finance");
   return { ok: !!updated };
 }

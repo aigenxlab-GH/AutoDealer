@@ -82,3 +82,26 @@ export type VehicleSort =
   | "price-desc"
   | "year-desc"
   | "kms-asc";
+
+export interface FinanceCompany {
+  id: string;
+  name: string;
+  /** Short code shown in the coloured logo badge, e.g. "SBI", "HDFC". */
+  shortName: string;
+  /** Annual interest rate as a percentage, e.g. 8.85. */
+  interestRate: number;
+  maxTenureYears: number;
+  processingFee: string;
+  /** Up to 3 bullet highlights shown as feature chips. */
+  highlights: string[];
+  /** CSS colour for the logo badge background. */
+  color: string;
+  /** Short badge label, e.g. "Lowest Rate". */
+  badge: string;
+  isActive: boolean;
+  /** Display order — lower = shown first. */
+  sortOrder: number;
+  createdAt: string;
+}
+
+export type FinanceCompanyInput = Omit<FinanceCompany, "id" | "createdAt">;

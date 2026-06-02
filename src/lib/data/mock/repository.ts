@@ -1,4 +1,6 @@
 import type {
+  FinanceCompany,
+  FinanceCompanyInput,
   Lead,
   LeadInput,
   LeadStatus,
@@ -8,15 +10,17 @@ import type {
   VehicleSort,
   VehicleType,
 } from "@/lib/types";
-import type { LeadRepository, VehicleRepository } from "@/lib/data/repository";
+import type { FinanceCompanyRepository, LeadRepository, VehicleRepository } from "@/lib/data/repository";
 import { seedVehicles } from "./vehicles";
 import { seedLeads } from "./leads";
+import { seedFinanceCompanies } from "./finance-companies";
 
 // In-memory store kept on globalThis so it survives Next.js dev HMR reloads
 // within a single server process. Lost on full restart — fine for mock mode.
 interface MockStore {
   vehicles: Vehicle[];
   leads: Lead[];
+  financeCompanies: FinanceCompany[];
 }
 
 const globalForMock = globalThis as unknown as { __mockStore?: MockStore };
@@ -26,6 +30,7 @@ const store: MockStore =
   (globalForMock.__mockStore = {
     vehicles: seedVehicles.map((v) => ({ ...v, images: [...v.images] })),
     leads: seedLeads.map((l) => ({ ...l })),
+    financeCompanies: seedFinanceCompanies.map((f) => ({ ...f })),
   });
 
 const clone = <T>(value: T): T =>
@@ -187,5 +192,51 @@ class MockLeadRepository implements LeadRepository {
   }
 }
 
+class MockFinanceCompanyRepository implements FinanceCompanyRepository {
+  async list(activeOnly = false): Promise<FinanceCompany[]> {
+    const result = activeOnly
+      ? store.financeCompanies.filter((f) => f.isActive)
+      : [...store.financeCompanies];
+    return clone(result.sort((a, b) => a.sortOrder - b.sortOrder));
+  }
+
+  async getById(id: string): Promise<FinanceCompany | null> {
+    const found = store.financeCompanies.find((f) => f.id === id);
+    return found ? clone(found) : null;
+  }
+
+  async create(input: FinanceCompanyInput): Promise<FinanceCompany> {
+    const maxOrder = store.financeCompanies.reduce(
+      (m, f) => Math.max(m, f.sortOrder),
+      0,
+    );
+    const company: FinanceCompany = {
+      ...input,
+      id: crypto.randomUUID(),
+      sortOrder: input.sortOrder ?? maxOrder + 1,
+      createdAt: new Date().toISOString(),
+    };
+    store.financeCompanies.push(company);
+    return clone(company);
+  }
+
+  async update(
+    id: string,
+    input: Partial<FinanceCompanyInput>,
+  ): Promise<FinanceCompany | null> {
+    const idx = store.financeCompanies.findIndex((f) => f.id === id);
+    if (idx === -1) return null;
+    store.financeCompanies[idx] = { ...store.financeCompanies[idx], ...input };
+    return clone(store.financeCompanies[idx]);
+  }
+
+  async remove(id: string): Promise<boolean> {
+    const before = store.financeCompanies.length;
+    store.financeCompanies = store.financeCompanies.filter((f) => f.id !== id);
+    return store.financeCompanies.length < before;
+  }
+}
+
 export const mockVehicleRepository = new MockVehicleRepository();
 export const mockLeadRepository = new MockLeadRepository();
+export const mockFinanceCompanyRepository = new MockFinanceCompanyRepository();

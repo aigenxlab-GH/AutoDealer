@@ -6,46 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { calculateEmi } from "@/lib/emi";
 import { formatPriceFull, formatPriceShort } from "@/lib/format";
 import { siteConfig } from "@/config/site";
-
-// ── Finance companies ────────────────────────────────────────────────────────
-const COMPANIES = [
-  {
-    id: "sbi",
-    name: "SBI Car Loan",
-    shortName: "SBI",
-    rate: 8.85,
-    rateDisplay: "8.85% p.a.*",
-    maxTenureYears: 7,
-    processingFee: "0.50% (min ₹3,000)",
-    highlights: ["Lowest rates for used cars", "No prepayment penalty", "Simple documentation"],
-    color: "#1a56db",
-    badge: "Most Popular",
-  },
-  {
-    id: "hdfc",
-    name: "HDFC Bank",
-    shortName: "HDFC",
-    rate: 9.40,
-    rateDisplay: "9.40% p.a.*",
-    maxTenureYears: 7,
-    processingFee: "₹3,000 – ₹5,000",
-    highlights: ["30-min approval decision", "Minimal documentation", "Doorstep service available"],
-    color: "#00558f",
-    badge: "Fastest Approval",
-  },
-  {
-    id: "bajaj",
-    name: "Bajaj Finance",
-    shortName: "Bajaj",
-    rate: 10.99,
-    rateDisplay: "10.99% p.a.*",
-    maxTenureYears: 5,
-    processingFee: "Up to 3.54%",
-    highlights: ["Pre-approved offers", "High LTV ratio", "Flexible repayment options"],
-    color: "#e67e00",
-    badge: "Flexible Terms",
-  },
-] as const;
+import type { FinanceCompany } from "@/lib/types";
 
 const TENURES = [12, 24, 36, 48, 60, 72, 84];
 
@@ -53,7 +14,7 @@ function n(v: number | readonly number[]) {
   return Array.isArray(v) ? (v as number[])[0] : (v as number);
 }
 
-export function FinanceCalculator() {
+export function FinanceCalculator({ companies }: { companies: FinanceCompany[] }) {
   const [vehiclePrice, setVehiclePrice] = useState(800000);
   const [downPayment, setDownPayment] = useState(200000);
   const [tenureMonths, setTenureMonths] = useState(60);
@@ -62,18 +23,26 @@ export function FinanceCalculator() {
 
   const results = useMemo(
     () =>
-      COMPANIES.map((c) => ({
+      companies.map((c) => ({
         ...c,
-        ...calculateEmi({ principal, annualRatePct: c.rate, tenureMonths }),
+        ...calculateEmi({ principal, annualRatePct: c.interestRate, tenureMonths }),
       })),
-    [principal, tenureMonths],
+    [companies, principal, tenureMonths],
   );
 
-  const minEmi = Math.min(...results.map((r) => r.emi));
+  const minEmi = results.length ? Math.min(...results.map((r) => r.emi)) : 0;
 
-  function waUrl(company: (typeof COMPANIES)[number]) {
-    const msg = `Hi! I want to apply for a car loan through ${company.name}.\n\nVehicle Price: ${formatPriceShort(vehiclePrice)}\nDown Payment: ${formatPriceShort(downPayment)}\nLoan Amount: ${formatPriceShort(principal)}\nTenure: ${tenureMonths} months\nExpected EMI: ${formatPriceFull(calculateEmi({ principal, annualRatePct: company.rate, tenureMonths }).emi)}/mo @ ${company.rateDisplay}\n\nPlease help me proceed.`;
+  function waUrl(company: FinanceCompany, emi: number) {
+    const msg = `Hi! I want to apply for a car loan through ${company.name}.\n\nVehicle Price: ${formatPriceShort(vehiclePrice)}\nDown Payment: ${formatPriceShort(downPayment)}\nLoan Amount: ${formatPriceShort(principal)}\nTenure: ${tenureMonths} months\nExpected EMI: ${formatPriceFull(emi)}/mo @ ${company.interestRate.toFixed(2)}% p.a.\n\nPlease help me proceed.`;
     return `https://wa.me/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+  }
+
+  if (companies.length === 0) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 lg:px-8">
+        <p className="text-white/40">No finance companies configured yet. Please check back soon.</p>
+      </div>
+    );
   }
 
   return (
@@ -88,7 +57,7 @@ export function FinanceCalculator() {
           Easy EMI for your next car
         </h1>
         <p className="mt-2 max-w-xl text-[15px] text-white/40">
-          Compare monthly EMI across SBI, HDFC &amp; Bajaj Finance. Adjust loan details
+          Compare monthly EMI across {companies.length} lender{companies.length > 1 ? "s" : ""}. Adjust loan details
           and apply instantly on WhatsApp — we&rsquo;ll help you get approved fast.
         </p>
       </div>
@@ -172,7 +141,7 @@ export function FinanceCalculator() {
                 <span className="text-sm font-semibold text-white/70">{tenureMonths} months</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {TENURES.map((t) => (
+                {TENURES.filter((t) => t / 12 <= Math.max(...companies.map((c) => c.maxTenureYears))).map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -184,7 +153,7 @@ export function FinanceCalculator() {
                         : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }
                     }
                   >
-                    {t === 12 ? "1 yr" : t === 84 ? "7 yr" : `${t / 12} yr`}
+                    {t === 12 ? "1 yr" : `${t / 12} yr`}
                   </button>
                 ))}
               </div>
@@ -222,6 +191,7 @@ export function FinanceCalculator() {
         <div className="space-y-4 lg:col-span-3">
           {results.map((r) => {
             const isBest = r.emi === minEmi;
+            const overTenure = tenureMonths / 12 > r.maxTenureYears;
             return (
               <div
                 key={r.id}
@@ -234,12 +204,22 @@ export function FinanceCalculator() {
                     ? "1px solid rgba(201,151,58,0.35)"
                     : "1px solid rgba(255,255,255,0.07)",
                   boxShadow: isBest ? "0 0 40px rgba(201,151,58,0.07)" : undefined,
+                  opacity: overTenure ? 0.5 : 1,
                 }}
               >
+                {/* Over-tenure warning */}
+                {overTenure && (
+                  <div
+                    className="mb-3 rounded-lg px-3 py-1.5 text-xs text-white/50"
+                    style={{ background: "rgba(255,255,255,0.05)" }}
+                  >
+                    ⚠ {r.name} offers max {r.maxTenureYears} years — select a shorter tenure
+                  </div>
+                )}
+
                 {/* Top row */}
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    {/* Bank logo placeholder */}
                     <div
                       className="flex size-12 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white"
                       style={{ background: r.color }}
@@ -249,31 +229,31 @@ export function FinanceCalculator() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-white/85">{r.name}</span>
-                        {isBest ? (
+                        {isBest && !overTenure ? (
                           <span
                             className="rounded-full px-2 py-0.5 text-[10px] font-bold"
                             style={{ background: "linear-gradient(90deg,#c9973a,#f0c96a)", color: "#1a0f00" }}
                           >
                             ✦ Best EMI
                           </span>
-                        ) : (
+                        ) : r.badge ? (
                           <span
                             className="rounded-full px-2 py-0.5 text-[10px] font-medium"
                             style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.4)" }}
                           >
                             {r.badge}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <div className="mt-0.5 flex items-center gap-2 text-xs">
-                        <span style={{ color: "#c9973a" }}>{r.rateDisplay}</span>
+                        <span style={{ color: "#c9973a" }}>{r.interestRate.toFixed(2)}% p.a.*</span>
                         <span className="text-white/25">·</span>
                         <span className="text-white/35">Up to {r.maxTenureYears} years</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* EMI amount */}
+                  {/* EMI */}
                   <div className="text-right">
                     <div
                       className="text-2xl font-semibold leading-none"
@@ -299,7 +279,7 @@ export function FinanceCalculator() {
                   {[
                     ["Total Payable", formatPriceShort(r.totalPayable)],
                     ["Total Interest", formatPriceShort(r.totalInterest)],
-                    ["Processing Fee", r.processingFee],
+                    ["Processing Fee", r.processingFee || "—"],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <div className="text-[11px] text-white/30">{label}</div>
@@ -309,26 +289,28 @@ export function FinanceCalculator() {
                 </div>
 
                 {/* Feature chips */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {r.highlights.map((h) => (
-                    <span
-                      key={h}
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] text-white/40"
-                      style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                      }}
-                    >
-                      <BadgeCheck className="size-3" style={{ color: "#c9973a" }} />
-                      {h}
-                    </span>
-                  ))}
-                </div>
+                {r.highlights.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {r.highlights.map((h) => (
+                      <span
+                        key={h}
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] text-white/40"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.07)",
+                        }}
+                      >
+                        <BadgeCheck className="size-3" style={{ color: "#c9973a" }} />
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* CTA */}
                 <div className="mt-5">
                   <a
-                    href={waUrl(r)}
+                    href={waUrl(r, r.emi)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 active:scale-95"
@@ -344,13 +326,12 @@ export function FinanceCalculator() {
 
           <p className="px-1 text-[11px] text-white/20">
             * Interest rates are indicative and vary based on credit score, vehicle age, loan-to-value ratio,
-            and individual bank policy. EMI calculated using reducing-balance method. Final rates are at the
-            discretion of the respective bank/NBFC.
+            and individual bank/NBFC policy. EMI is calculated using the reducing-balance method.
           </p>
         </div>
       </div>
 
-      {/* Bottom help CTA */}
+      {/* Help CTA */}
       <div
         className="mt-12 flex flex-col items-center justify-between gap-5 rounded-2xl px-8 py-8 sm:flex-row"
         style={{

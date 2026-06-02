@@ -1,4 +1,6 @@
 import type {
+  FinanceCompany,
+  FinanceCompanyInput,
   Lead,
   LeadInput,
   LeadStatus,
@@ -32,4 +34,13 @@ export interface LeadRepository {
   updateStatus(id: string, status: LeadStatus): Promise<Lead | null>;
   /** Map of vehicleId -> lead count, for the admin analytics column. */
   countByVehicle(): Promise<Record<string, number>>;
+}
+
+export interface FinanceCompanyRepository {
+  /** activeOnly=true returns only active companies, sorted by sortOrder. */
+  list(activeOnly?: boolean): Promise<FinanceCompany[]>;
+  getById(id: string): Promise<FinanceCompany | null>;
+  create(input: FinanceCompanyInput): Promise<FinanceCompany>;
+  update(id: string, input: Partial<FinanceCompanyInput>): Promise<FinanceCompany | null>;
+  remove(id: string): Promise<boolean>;
 }
