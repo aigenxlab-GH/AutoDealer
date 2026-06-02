@@ -410,12 +410,12 @@ function Section({ typeToggle, addForm, filter, headers, children }: {
       </div>
       {filter && <div className="border-b px-4 py-2">{filter}</div>}
       {/* Column headers */}
-      <div className="grid border-b px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+      <div className="grid border-b bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
         style={{ gridTemplateColumns: `1fr repeat(${headers.length - 1}, auto) 5rem` }}>
         {headers.map((h) => <span key={h}>{h}</span>)}
         <span className="text-right">Actions</span>
       </div>
-      <ul className="divide-y">{children}</ul>
+      <ul className="divide-y bg-muted/20">{children}</ul>
     </div>
   );
 }
@@ -435,7 +435,7 @@ function EditableRow({ label, badge, badge2, onSave, onDelete, disabled }: {
   function handleCancel() { setEditing(false); setValue(label); }
 
   return (
-    <li className="grid items-center gap-3 px-4 py-2.5"
+    <li className="grid items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
       style={{ gridTemplateColumns: `1fr repeat(${cols - 1}, auto) 5rem` }}>
       {editing
         ? <Input value={value} onChange={(e) => setValue(e.target.value)}
