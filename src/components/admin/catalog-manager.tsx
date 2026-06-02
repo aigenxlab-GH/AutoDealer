@@ -251,8 +251,8 @@ function VariantsTab({
     ? variants.filter((v) => filteredModels.some((m) => m.id === v.modelId))
     : variants;
 
-  function handleMakeChange(id: string) {
-    setMakeId(id);
+  function handleMakeChange(id: string | null) {
+    setMakeId(id ?? "");
     setModelId("");
   }
 
