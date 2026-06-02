@@ -2,16 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, Loader2, Pencil, Check, X } from "lucide-react";
+import { Trash2, Plus, Loader2, Pencil, Check, X, Car, Bike } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   createMakeAction, updateMakeAction, deleteMakeAction,
@@ -19,6 +15,7 @@ import {
   createVariantAction, updateVariantAction, deleteVariantAction,
 } from "@/app/actions/admin";
 import type { VehicleMake, VehicleModel, VehicleType, VehicleVariant } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface Props {
   makes: VehicleMake[];
@@ -28,18 +25,54 @@ interface Props {
 
 type Tab = "makes" | "models" | "variants";
 
+// ── Type toggle ───────────────────────────────────────────────────────────────
+
+function TypeToggle({ value, onChange, carCount, bikeCount }: {
+  value: VehicleType;
+  onChange: (t: VehicleType) => void;
+  carCount: number;
+  bikeCount: number;
+}) {
+  return (
+    <div className="inline-flex rounded-lg border bg-muted p-0.5">
+      {(["car", "bike"] as VehicleType[]).map((t) => {
+        const Icon = t === "car" ? Car : Bike;
+        const count = t === "car" ? carCount : bikeCount;
+        return (
+          <button key={t} type="button" onClick={() => onChange(t)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors",
+              value === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}>
+            <Icon className="size-3.5" />
+            {t}
+            <span className="rounded-full bg-muted-foreground/20 px-1.5 py-0.5 text-[10px] font-semibold">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Root ──────────────────────────────────────────────────────────────────────
+
 export function CatalogManager({ makes, models, variants }: Props) {
   const [tab, setTab] = useState<Tab>("makes");
+
+  const totalCounts = {
+    makes: makes.length, models: models.length, variants: variants.length,
+  };
+
   return (
     <div className="space-y-4">
       <div className="inline-flex rounded-lg border bg-muted p-1">
         {(["makes", "models", "variants"] as Tab[]).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)}
-            className={["rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors",
-              tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"].join(" ")}>
+            className={cn("rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors",
+              tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
             {t}
             <span className="ml-1.5 rounded-full bg-muted-foreground/20 px-1.5 py-0.5 text-[10px] font-semibold">
-              {t === "makes" ? makes.length : t === "models" ? models.length : variants.length}
+              {totalCounts[t]}
             </span>
           </button>
         ))}
@@ -56,13 +89,16 @@ export function CatalogManager({ makes, models, variants }: Props) {
 function MakesTab({ makes }: { makes: VehicleMake[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
   const [name, setName] = useState("");
-  const [type, setType] = useState<VehicleType>("car");
+
+  // Add-form type follows the filter toggle
+  const filtered = makes.filter((m) => m.type === typeFilter);
 
   function handleAdd() {
     if (!name.trim()) return;
     startTransition(async () => {
-      const res = await createMakeAction({ name, type });
+      const res = await createMakeAction({ name, type: typeFilter });
       if (!res.ok) { toast.error(res.error ?? "Failed to add."); return; }
       toast.success(`"${name}" added.`);
       setName("");
@@ -90,27 +126,26 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
 
   return (
     <Section
+      typeToggle={
+        <TypeToggle value={typeFilter} onChange={(t) => { setTypeFilter(t); setName(""); }}
+          carCount={makes.filter((m) => m.type === "car").length}
+          bikeCount={makes.filter((m) => m.type === "bike").length} />
+      }
       addForm={
         <div className="flex flex-wrap gap-2">
           <Input value={name} onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="e.g. Maruti Suzuki" className="w-52" />
-          <Select value={type} onValueChange={(v) => setType((v ?? "car") as VehicleType)}>
-            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="car">Car</SelectItem>
-              <SelectItem value="bike">Bike</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder={`e.g. ${typeFilter === "car" ? "Maruti Suzuki" : "Hero MotoCorp"}`} className="w-52" />
           <Button onClick={handleAdd} disabled={pending || !name.trim()} size="sm">
-            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add Make
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+            Add {typeFilter === "car" ? "Car" : "Bike"} Make
           </Button>
         </div>
       }
       headers={["Make Name", "Type"]}
     >
-      {makes.length === 0 && <Empty text="No makes yet. Add your first one above." cols={2} />}
-      {makes.map((m) => (
+      {filtered.length === 0 && <Empty text={`No ${typeFilter} makes yet. Add your first one above.`} cols={2} />}
+      {filtered.map((m) => (
         <EditableRow key={m.id} label={m.name} badge={m.type} disabled={pending}
           onSave={(n) => handleUpdate(m.id, n)}
           onDelete={() => handleDelete(m.id, m.name)} />
@@ -124,14 +159,27 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
 function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleModel[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  // Use make NAME as select value (unique; avoids showing UUID)
+  const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
   const [filterMakeName, setFilterMakeName] = useState("");
   const [addMakeName, setAddMakeName] = useState("");
   const [name, setName] = useState("");
 
-  const addMakeId = makes.find((m) => m.name === addMakeName)?.id ?? "";
-  const filterMakeId = makes.find((m) => m.name === filterMakeName)?.id ?? "";
-  const filtered = filterMakeId ? models.filter((m) => m.makeId === filterMakeId) : models;
+  // Only makes matching selected type
+  const typedMakes = makes.filter((m) => m.type === typeFilter);
+  const addMakeId  = typedMakes.find((m) => m.name === addMakeName)?.id ?? "";
+  const filterMakeId = typedMakes.find((m) => m.name === filterMakeName)?.id ?? "";
+
+  // Models whose make matches the selected type
+  const typedMakeIds = typedMakes.map((m) => m.id);
+  const typeFilteredModels = models.filter((m) => typedMakeIds.includes(m.makeId));
+  const filtered = filterMakeId ? typeFilteredModels.filter((m) => m.makeId === filterMakeId) : typeFilteredModels;
+
+  function handleTypeChange(t: VehicleType) {
+    setTypeFilter(t);
+    setAddMakeName("");
+    setFilterMakeName("");
+    setName("");
+  }
 
   function handleAdd() {
     if (!name.trim() || !addMakeId) return;
@@ -164,13 +212,17 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 
   return (
     <Section
+      typeToggle={
+        <TypeToggle value={typeFilter} onChange={handleTypeChange}
+          carCount={models.filter((m) => makes.find((mk) => mk.id === m.makeId)?.type === "car").length}
+          bikeCount={models.filter((m) => makes.find((mk) => mk.id === m.makeId)?.type === "bike").length} />
+      }
       addForm={
         <div className="flex flex-wrap gap-2">
-          {/* Use make name as value → no UUID shown */}
           <Select value={addMakeName} onValueChange={(v) => setAddMakeName(v ?? "")}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Select make" /></SelectTrigger>
             <SelectContent>
-              {makes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+              {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Input value={name} onChange={(e) => setName(e.target.value)}
@@ -182,14 +234,14 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
         </div>
       }
       filter={
-        makes.length > 0 && (
+        typedMakes.length > 0 && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Filter by Make:</span>
             <Select value={filterMakeName} onValueChange={(v) => setFilterMakeName(v ?? "")}>
               <SelectTrigger className="h-7 w-40 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All makes</SelectItem>
-                {makes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -197,7 +249,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
       }
       headers={["Model Name", "Make"]}
     >
-      {filtered.length === 0 && <Empty text={filterMakeName ? "No models for this make yet." : "No models yet. Add your first one above."} cols={2} />}
+      {filtered.length === 0 && <Empty text={filterMakeName ? "No models for this make yet." : `No ${typeFilter} models yet. Add your first one above.`} cols={2} />}
       {filtered.map((m) => (
         <EditableRow key={m.id} label={m.name} badge={m.makeName} disabled={pending}
           onSave={(n) => handleUpdate(m.id, n)}
@@ -212,34 +264,39 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models: VehicleModel[]; variants: VehicleVariant[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [filterMakeName, setFilterMakeName] = useState("");
-  const [addMakeName, setAddMakeName]   = useState("");
-  const [addModelName, setAddModelName] = useState("");
+  const [typeFilter, setTypeFilter]       = useState<VehicleType>("car");
+  const [addMakeName, setAddMakeName]     = useState("");
+  const [addModelName, setAddModelName]   = useState("");
+  const [filterMakeName, setFilterMakeName]   = useState("");
   const [filterModelName, setFilterModelName] = useState("");
   const [name, setName] = useState("");
 
-  const addMakeId    = makes.find((m) => m.name === addMakeName)?.id ?? "";
-  const addModels    = addMakeId ? models.filter((m) => m.makeId === addMakeId) : [];
-  const addModelId   = addModels.find((m) => m.name === addModelName)?.id ?? "";
+  const typedMakes   = makes.filter((m) => m.type === typeFilter);
+  const typedMakeIds = typedMakes.map((m) => m.id);
 
-  const filterMakeId  = makes.find((m) => m.name === filterMakeName)?.id ?? "";
-  const filterModels  = filterMakeId ? models.filter((m) => m.makeId === filterMakeId) : models;
+  const addMakeId  = typedMakes.find((m) => m.name === addMakeName)?.id ?? "";
+  const addModels  = addMakeId ? models.filter((m) => m.makeId === addMakeId) : [];
+  const addModelId = addModels.find((m) => m.name === addModelName)?.id ?? "";
+
+  const filterMakeId  = typedMakes.find((m) => m.name === filterMakeName)?.id ?? "";
+  const filterModels  = filterMakeId ? models.filter((m) => m.makeId === filterMakeId) : models.filter((m) => typedMakeIds.includes(m.makeId));
   const filterModelId = filterModels.find((m) => m.name === filterModelName)?.id ?? "";
 
+  const typeFilteredVariants = variants.filter((v) => {
+    const model = models.find((m) => m.id === v.modelId);
+    return model && typedMakeIds.includes(model.makeId);
+  });
   const filteredVariants = filterModelId
-    ? variants.filter((v) => v.modelId === filterModelId)
+    ? typeFilteredVariants.filter((v) => v.modelId === filterModelId)
     : filterMakeId
-    ? variants.filter((v) => filterModels.some((m) => m.id === v.modelId))
-    : variants;
+    ? typeFilteredVariants.filter((v) => filterModels.some((m) => m.id === v.modelId))
+    : typeFilteredVariants;
 
-  function handleMakeChange(val: string | null) {
-    setAddMakeName(val ?? "");
-    setAddModelName("");
-  }
-
-  function handleFilterMakeChange(val: string | null) {
-    setFilterMakeName(val ?? "");
-    setFilterModelName("");
+  function handleTypeChange(t: VehicleType) {
+    setTypeFilter(t);
+    setAddMakeName(""); setAddModelName("");
+    setFilterMakeName(""); setFilterModelName("");
+    setName("");
   }
 
   function handleAdd() {
@@ -271,13 +328,20 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
     });
   }
 
+  const carVariants  = variants.filter((v) => { const m = models.find((m) => m.id === v.modelId); return m && makes.find((mk) => mk.id === m.makeId)?.type === "car"; });
+  const bikeVariants = variants.filter((v) => { const m = models.find((m) => m.id === v.modelId); return m && makes.find((mk) => mk.id === m.makeId)?.type === "bike"; });
+
   return (
     <Section
+      typeToggle={
+        <TypeToggle value={typeFilter} onChange={handleTypeChange}
+          carCount={carVariants.length} bikeCount={bikeVariants.length} />
+      }
       addForm={
         <div className="flex flex-wrap gap-2">
-          <Select value={addMakeName} onValueChange={handleMakeChange}>
+          <Select value={addMakeName} onValueChange={(v) => { setAddMakeName(v ?? ""); setAddModelName(""); }}>
             <SelectTrigger className="w-40"><SelectValue placeholder="Select make" /></SelectTrigger>
-            <SelectContent>{makes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={addModelName} onValueChange={(v) => setAddModelName(v ?? "")} disabled={!addMakeName}>
             <SelectTrigger className="w-40"><SelectValue placeholder={addMakeName ? "Select model" : "Pick make first"} /></SelectTrigger>
@@ -292,14 +356,14 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
         </div>
       }
       filter={
-        makes.length > 0 && (
+        typedMakes.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>Filter:</span>
-            <Select value={filterMakeName} onValueChange={handleFilterMakeChange}>
+            <Select value={filterMakeName} onValueChange={(v) => { setFilterMakeName(v ?? ""); setFilterModelName(""); }}>
               <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All makes</SelectItem>
-                {makes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterModelName} onValueChange={(v) => setFilterModelName(v ?? "")} disabled={!filterMakeName}>
@@ -314,7 +378,7 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
       }
       headers={["Variant Name", "Make", "Model"]}
     >
-      {filteredVariants.length === 0 && <Empty text={filterModelName ? "No variants for this model yet." : "No variants yet. Add your first one above."} cols={3} />}
+      {filteredVariants.length === 0 && <Empty text={filterModelName ? "No variants for this model yet." : `No ${typeFilter} variants yet. Add your first one above.`} cols={3} />}
       {filteredVariants.map((v) => (
         <EditableRow key={v.id} label={v.name} badge={v.makeName} badge2={v.modelName} disabled={pending}
           onSave={(n) => handleUpdate(v.id, n)}
@@ -326,7 +390,8 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
-function Section({ addForm, filter, headers, children }: {
+function Section({ typeToggle, addForm, filter, headers, children }: {
+  typeToggle: React.ReactNode;
   addForm: React.ReactNode;
   filter?: React.ReactNode;
   headers: string[];
@@ -334,6 +399,11 @@ function Section({ addForm, filter, headers, children }: {
 }) {
   return (
     <div className="rounded-xl border bg-card shadow-sm">
+      {/* Type toggle bar */}
+      <div className="flex items-center gap-3 border-b px-4 py-3">
+        {typeToggle}
+      </div>
+      {/* Add form */}
       <div className="space-y-3 border-b p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Add new</p>
         {addForm}
@@ -351,60 +421,43 @@ function Section({ addForm, filter, headers, children }: {
 }
 
 function EditableRow({ label, badge, badge2, onSave, onDelete, disabled }: {
-  label: string;
-  badge: string;
-  badge2?: string;
-  onSave: (newName: string) => void;
-  onDelete: () => void;
-  disabled: boolean;
+  label: string; badge: string; badge2?: string;
+  onSave: (n: string) => void; onDelete: () => void; disabled: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(label);
+  const cols = badge2 ? 3 : 2;
 
   function handleSave() {
     if (!value.trim() || value.trim() === label) { setEditing(false); setValue(label); return; }
-    onSave(value.trim());
-    setEditing(false);
+    onSave(value.trim()); setEditing(false);
   }
-
   function handleCancel() { setEditing(false); setValue(label); }
-
-  const cols = badge2 ? 3 : 2;
 
   return (
     <li className="grid items-center gap-3 px-4 py-2.5"
       style={{ gridTemplateColumns: `1fr repeat(${cols - 1}, auto) 5rem` }}>
-      {editing ? (
-        <Input value={value} onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
-          className="h-7 text-sm" autoFocus />
-      ) : (
-        <span className="truncate text-sm font-medium">{label}</span>
-      )}
+      {editing
+        ? <Input value={value} onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+            className="h-7 text-sm" autoFocus />
+        : <span className="truncate text-sm font-medium">{label}</span>}
       <span className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground capitalize">{badge}</span>
       {badge2 && <span className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{badge2}</span>}
       <div className="flex items-center justify-end gap-1">
         {editing ? (
           <>
             <button type="button" onClick={handleSave} disabled={disabled}
-              className="rounded p-1 text-muted-foreground hover:bg-green-500/10 hover:text-green-500 disabled:opacity-40" aria-label="Save">
-              <Check className="size-4" />
-            </button>
+              className="rounded p-1 text-muted-foreground hover:bg-green-500/10 hover:text-green-500 disabled:opacity-40"><Check className="size-4" /></button>
             <button type="button" onClick={handleCancel}
-              className="rounded p-1 text-muted-foreground hover:bg-accent" aria-label="Cancel">
-              <X className="size-4" />
-            </button>
+              className="rounded p-1 text-muted-foreground hover:bg-accent"><X className="size-4" /></button>
           </>
         ) : (
           <>
             <button type="button" onClick={() => setEditing(true)} disabled={disabled}
-              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40" aria-label={`Edit ${label}`}>
-              <Pencil className="size-4" />
-            </button>
+              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"><Pencil className="size-4" /></button>
             <button type="button" onClick={onDelete} disabled={disabled}
-              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40" aria-label={`Delete ${label}`}>
-              <Trash2 className="size-4" />
-            </button>
+              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"><Trash2 className="size-4" /></button>
           </>
         )}
       </div>
