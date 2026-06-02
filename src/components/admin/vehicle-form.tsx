@@ -21,6 +21,7 @@ import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import type { FuelType, Transmission, Vehicle, VehicleInput, VehicleType } from "@/lib/types";
 import { saveVehicleAction } from "@/app/actions/admin";
+import { CAR_MAKES_DATA, BIKE_MAKES_DATA } from "@/lib/vehicle-makes-data";
 
 const FUELS: FuelType[] = ["petrol", "diesel", "cng", "electric", "hybrid"];
 const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
@@ -78,9 +79,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     vehicle ? fromVehicle(vehicle) : defaults(),
   );
   const [submitting, setSubmitting] = useState(false);
-  const makeOptions = form.type === "car" ? CAR_MAKES : BIKE_MAKES;
+
+  const makesData = form.type === "car" ? CAR_MAKES_DATA : BIKE_MAKES_DATA;
+  const makeOptions = Object.keys(makesData);
+  const modelOptions = form.make && makesData[form.make] ? Object.keys(makesData[form.make]) : [];
+  const variantOptions = form.make && form.model && makesData[form.make]?.[form.model] ? makesData[form.make][form.model] : [];
+
   const [customMake, setCustomMake] = useState<boolean>(
     vehicle ? !makeOptions.includes(vehicle.make) : false,
+  );
+  const [customModel, setCustomModel] = useState<boolean>(
+    vehicle ? Boolean(vehicle.make && makesData[vehicle.make] && !Object.keys(makesData[vehicle.make] ?? {}).includes(vehicle.model ?? "")) : false,
+  );
+  const [customVariant, setCustomVariant] = useState<boolean>(
+    vehicle ? Boolean(vehicle.model && vehicle.variant && !(makesData[vehicle.make ?? ""]?.[vehicle.model ?? ""] ?? []).includes(vehicle.variant)) : false,
   );
 
   const maxImages =
@@ -92,6 +104,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
   function switchType(type: VehicleType) {
     setCustomMake(false);
+    setCustomModel(false);
+    setCustomVariant(false);
     setForm((f) => {
       const max = type === "car" ? siteConfig.limits.carImages : siteConfig.limits.bikeImages;
       const images = f.images.slice(0, max);
@@ -155,6 +169,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       {/* Core details */}
       <Card title="Details">
         <div className="grid gap-4 sm:grid-cols-2">
+          {/* Make */}
           <Field label="Make" required>
             {customMake ? (
               <div className="flex gap-2">
@@ -169,7 +184,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                   type="button"
                   variant="outline"
                   className="shrink-0 text-xs"
-                  onClick={() => { setCustomMake(false); set("make", ""); }}
+                  onClick={() => {
+                    setCustomMake(false);
+                    setCustomModel(false);
+                    setCustomVariant(false);
+                    set("make", "");
+                    set("model", "");
+                    set("variant", "");
+                  }}
                 >
                   Cancel
                 </Button>
@@ -178,8 +200,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               <Select
                 value={makeOptions.includes(form.make) ? form.make : ""}
                 onValueChange={(v) => {
-                  if (v === "__other__") { setCustomMake(true); set("make", ""); }
-                  else set("make", v);
+                  if (v === "__other__") {
+                    setCustomMake(true);
+                    setCustomModel(true);
+                    setCustomVariant(true);
+                    set("make", "");
+                    set("model", "");
+                    set("variant", "");
+                  } else {
+                    set("make", v);
+                    set("model", "");
+                    set("variant", "");
+                    setCustomModel(false);
+                    setCustomVariant(false);
+                  }
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -196,20 +230,118 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </Select>
             )}
           </Field>
+
+          {/* Model */}
           <Field label="Model" required>
-            <Input
-              value={form.model}
-              onChange={(e) => set("model", e.target.value)}
-              placeholder="e.g. Swift"
-              required
-            />
+            {customMake || customModel ? (
+              <div className="flex gap-2">
+                <Input
+                  value={form.model}
+                  onChange={(e) => { set("model", e.target.value); set("variant", ""); }}
+                  placeholder="Enter model manually"
+                  required
+                />
+                {!customMake && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 text-xs"
+                    onClick={() => {
+                      setCustomModel(false);
+                      setCustomVariant(false);
+                      set("model", "");
+                      set("variant", "");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Select
+                value={modelOptions.includes(form.model) ? form.model : ""}
+                onValueChange={(v) => {
+                  if (v === "__other__") {
+                    setCustomModel(true);
+                    setCustomVariant(true);
+                    set("model", "");
+                    set("variant", "");
+                  } else {
+                    set("model", v);
+                    set("variant", "");
+                    setCustomVariant(false);
+                  }
+                }}
+                disabled={!form.make}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={form.make ? "Select model" : "Select make first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {modelOptions.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                  {modelOptions.length > 0 && (
+                    <SelectItem value="__other__" className="text-muted-foreground italic">
+                      Other — enter manually
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </Field>
+
+          {/* Variant */}
           <Field label="Variant">
-            <Input
-              value={form.variant ?? ""}
-              onChange={(e) => set("variant", e.target.value)}
-              placeholder="e.g. ZXI Plus"
-            />
+            {customMake || customModel || customVariant ? (
+              <div className="flex gap-2">
+                <Input
+                  value={form.variant ?? ""}
+                  onChange={(e) => set("variant", e.target.value)}
+                  placeholder="Enter variant manually"
+                />
+                {!customMake && !customModel && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 text-xs"
+                    onClick={() => {
+                      setCustomVariant(false);
+                      set("variant", "");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Select
+                value={variantOptions.includes(form.variant ?? "") ? (form.variant ?? "") : ""}
+                onValueChange={(v) => {
+                  if (v === "__other__") {
+                    setCustomVariant(true);
+                    set("variant", "");
+                  } else {
+                    set("variant", v);
+                  }
+                }}
+                disabled={!form.model}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={form.model ? "Select variant" : "Select model first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {variantOptions.map((v) => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                  {variantOptions.length > 0 && (
+                    <SelectItem value="__other__" className="text-muted-foreground italic">
+                      Other — enter manually
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </Field>
           <Field label="Production Year" required>
             <Input
