@@ -45,14 +45,19 @@ export interface LeadRepository {
 export interface CatalogRepository {
   listMakes(type?: VehicleType): Promise<VehicleMake[]>;
   createMake(input: VehicleMakeInput): Promise<VehicleMake>;
-  deleteMake(id: string): Promise<boolean>;
+  updateMake(id: string, name: string): Promise<VehicleMake | null>;
+  /** Returns false if models are still linked. */
+  deleteMake(id: string): Promise<{ ok: boolean; reason?: string }>;
 
   listModels(makeId?: string): Promise<VehicleModel[]>;
   createModel(input: VehicleModelInput): Promise<VehicleModel>;
-  deleteModel(id: string): Promise<boolean>;
+  updateModel(id: string, name: string): Promise<VehicleModel | null>;
+  /** Returns false if variants are still linked. */
+  deleteModel(id: string): Promise<{ ok: boolean; reason?: string }>;
 
   listVariants(modelId?: string): Promise<VehicleVariant[]>;
   createVariant(input: VehicleVariantInput): Promise<VehicleVariant>;
+  updateVariant(id: string, name: string): Promise<VehicleVariant | null>;
   deleteVariant(id: string): Promise<boolean>;
 }
 

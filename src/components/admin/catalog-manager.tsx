@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, Loader2 } from "lucide-react";
+import { Trash2, Plus, Loader2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createMakeAction,
-  deleteMakeAction,
-  createModelAction,
-  deleteModelAction,
-  createVariantAction,
-  deleteVariantAction,
+  createMakeAction, updateMakeAction, deleteMakeAction,
+  createModelAction, updateModelAction, deleteModelAction,
+  createVariantAction, updateVariantAction, deleteVariantAction,
 } from "@/app/actions/admin";
 import type { VehicleMake, VehicleModel, VehicleType, VehicleVariant } from "@/lib/types";
 
@@ -36,7 +33,6 @@ export function CatalogManager({ makes, models, variants }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Tab bar */}
       <div className="inline-flex rounded-lg border bg-muted p-1">
         {(["makes", "models", "variants"] as Tab[]).map((t) => (
           <button
@@ -45,9 +41,7 @@ export function CatalogManager({ makes, models, variants }: Props) {
             onClick={() => setTab(t)}
             className={[
               "rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors",
-              tab === t
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+              tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
             ].join(" ")}
           >
             {t}
@@ -77,9 +71,18 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
     if (!name.trim()) return;
     startTransition(async () => {
       const res = await createMakeAction({ name, type });
-      if (!res.ok) { toast.error(res.error ?? "Failed to add make."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to add."); return; }
       toast.success(`"${name}" added.`);
       setName("");
+      router.refresh();
+    });
+  }
+
+  function handleUpdate(id: string, newName: string, oldName: string) {
+    startTransition(async () => {
+      const res = await updateMakeAction(id, newName);
+      if (!res.ok) { toast.error(res.error ?? "Failed to update."); return; }
+      toast.success(`Renamed to "${newName}".`);
       router.refresh();
     });
   }
@@ -87,7 +90,7 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
   function handleDelete(id: string, label: string) {
     startTransition(async () => {
       const res = await deleteMakeAction(id);
-      if (!res.ok) { toast.error("Failed to delete."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to delete."); return; }
       toast.success(`"${label}" removed.`);
       router.refresh();
     });
@@ -97,38 +100,25 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
     <Section
       addForm={
         <div className="flex flex-wrap gap-2">
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="e.g. Maruti Suzuki"
-            className="w-52"
-          />
-          <Select value={type} onValueChange={(v) => setType(v as VehicleType)}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
+          <Input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} placeholder="e.g. Maruti Suzuki" className="w-52" />
+          <Select value={type} onValueChange={(v) => setType((v ?? "car") as VehicleType)}>
+            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="car">Car</SelectItem>
               <SelectItem value="bike">Bike</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleAdd} disabled={pending || !name.trim()} size="sm">
-            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            Add Make
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add Make
           </Button>
         </div>
       }
     >
       {makes.length === 0 && <Empty text="No makes yet. Add your first one above." />}
       {makes.map((m) => (
-        <Row
-          key={m.id}
-          label={m.name}
-          badge={m.type}
-          onDelete={() => handleDelete(m.id, m.name)}
-          disabled={pending}
-        />
+        <EditableRow key={m.id} label={m.name} badge={m.type} disabled={pending}
+          onSave={(newName) => handleUpdate(m.id, newName, m.name)}
+          onDelete={() => handleDelete(m.id, m.name)} />
       ))}
     </Section>
   );
@@ -148,9 +138,18 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
     if (!name.trim() || !makeId) return;
     startTransition(async () => {
       const res = await createModelAction({ makeId, name });
-      if (!res.ok) { toast.error(res.error ?? "Failed to add model."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to add."); return; }
       toast.success(`"${name}" added.`);
       setName("");
+      router.refresh();
+    });
+  }
+
+  function handleUpdate(id: string, newName: string) {
+    startTransition(async () => {
+      const res = await updateModelAction(id, newName);
+      if (!res.ok) { toast.error(res.error ?? "Failed to update."); return; }
+      toast.success(`Renamed to "${newName}".`);
       router.refresh();
     });
   }
@@ -158,7 +157,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
   function handleDelete(id: string, label: string) {
     startTransition(async () => {
       const res = await deleteModelAction(id);
-      if (!res.ok) { toast.error("Failed to delete."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to delete."); return; }
       toast.success(`"${label}" removed.`);
       router.refresh();
     });
@@ -169,26 +168,12 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
       addForm={
         <div className="flex flex-wrap gap-2">
           <Select value={makeId} onValueChange={(v) => setMakeId(v ?? "")}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Select make" />
-            </SelectTrigger>
-            <SelectContent>
-              {makes.map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-              ))}
-            </SelectContent>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Select make" /></SelectTrigger>
+            <SelectContent>{makes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
           </Select>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="e.g. Swift"
-            className="w-44"
-            disabled={!makeId}
-          />
+          <Input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} placeholder="e.g. Swift" className="w-44" disabled={!makeId} />
           <Button onClick={handleAdd} disabled={pending || !name.trim() || !makeId} size="sm">
-            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            Add Model
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add Model
           </Button>
         </div>
       }
@@ -197,31 +182,21 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Filter:</span>
             <Select value={makeId} onValueChange={(v) => setMakeId(v ?? "")}>
-              <SelectTrigger className="h-7 w-40 text-xs">
-                <SelectValue placeholder="All makes" />
-              </SelectTrigger>
+              <SelectTrigger className="h-7 w-40 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All makes</SelectItem>
-                {makes.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                ))}
+                {makes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         )
       }
     >
-      {filtered.length === 0 && (
-        <Empty text={makeId ? "No models for this make yet." : "No models yet. Add your first one above."} />
-      )}
+      {filtered.length === 0 && <Empty text={makeId ? "No models for this make yet." : "No models yet. Add your first one above."} />}
       {filtered.map((m) => (
-        <Row
-          key={m.id}
-          label={m.name}
-          badge={m.makeName}
-          onDelete={() => handleDelete(m.id, m.name)}
-          disabled={pending}
-        />
+        <EditableRow key={m.id} label={m.name} badge={m.makeName} disabled={pending}
+          onSave={(newName) => handleUpdate(m.id, newName)}
+          onDelete={() => handleDelete(m.id, m.name)} />
       ))}
     </Section>
   );
@@ -229,15 +204,7 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 
 // ── Variants ──────────────────────────────────────────────────────────────────
 
-function VariantsTab({
-  makes,
-  models,
-  variants,
-}: {
-  makes: VehicleMake[];
-  models: VehicleModel[];
-  variants: VehicleVariant[];
-}) {
+function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models: VehicleModel[]; variants: VehicleVariant[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [makeId, setMakeId] = useState("");
@@ -247,22 +214,27 @@ function VariantsTab({
   const filteredModels = makeId ? models.filter((m) => m.makeId === makeId) : models;
   const filteredVariants = modelId
     ? variants.filter((v) => v.modelId === modelId)
-    : makeId
-    ? variants.filter((v) => filteredModels.some((m) => m.id === v.modelId))
+    : makeId ? variants.filter((v) => filteredModels.some((m) => m.id === v.modelId))
     : variants;
 
-  function handleMakeChange(id: string | null) {
-    setMakeId(id ?? "");
-    setModelId("");
-  }
+  function handleMakeChange(id: string | null) { setMakeId(id ?? ""); setModelId(""); }
 
   function handleAdd() {
     if (!name.trim() || !modelId) return;
     startTransition(async () => {
       const res = await createVariantAction({ modelId, name });
-      if (!res.ok) { toast.error(res.error ?? "Failed to add variant."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to add."); return; }
       toast.success(`"${name}" added.`);
       setName("");
+      router.refresh();
+    });
+  }
+
+  function handleUpdate(id: string, newName: string) {
+    startTransition(async () => {
+      const res = await updateVariantAction(id, newName);
+      if (!res.ok) { toast.error(res.error ?? "Failed to update."); return; }
+      toast.success(`Renamed to "${newName}".`);
       router.refresh();
     });
   }
@@ -270,7 +242,7 @@ function VariantsTab({
   function handleDelete(id: string, label: string) {
     startTransition(async () => {
       const res = await deleteVariantAction(id);
-      if (!res.ok) { toast.error("Failed to delete."); return; }
+      if (!res.ok) { toast.error(res.error ?? "Failed to delete."); return; }
       toast.success(`"${label}" removed.`);
       router.refresh();
     });
@@ -281,36 +253,16 @@ function VariantsTab({
       addForm={
         <div className="flex flex-wrap gap-2">
           <Select value={makeId} onValueChange={handleMakeChange}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Select make" />
-            </SelectTrigger>
-            <SelectContent>
-              {makes.map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-              ))}
-            </SelectContent>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Select make" /></SelectTrigger>
+            <SelectContent>{makes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={modelId} onValueChange={(v) => setModelId(v ?? "")} disabled={!makeId}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={makeId ? "Select model" : "Pick make first"} />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredModels.map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-              ))}
-            </SelectContent>
+            <SelectTrigger className="w-40"><SelectValue placeholder={makeId ? "Select model" : "Pick make first"} /></SelectTrigger>
+            <SelectContent>{filteredModels.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
           </Select>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder="e.g. ZXI+"
-            className="w-36"
-            disabled={!modelId}
-          />
+          <Input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} placeholder="e.g. ZXI+" className="w-36" disabled={!modelId} />
           <Button onClick={handleAdd} disabled={pending || !name.trim() || !modelId} size="sm">
-            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            Add Variant
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add Variant
           </Button>
         </div>
       }
@@ -319,42 +271,28 @@ function VariantsTab({
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>Filter:</span>
             <Select value={makeId} onValueChange={handleMakeChange}>
-              <SelectTrigger className="h-7 w-36 text-xs">
-                <SelectValue placeholder="All makes" />
-              </SelectTrigger>
+              <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All makes" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All makes</SelectItem>
-                {makes.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                ))}
+                {makes.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={modelId} onValueChange={(v) => setModelId(v ?? "")} disabled={!makeId}>
-              <SelectTrigger className="h-7 w-36 text-xs">
-                <SelectValue placeholder="All models" />
-              </SelectTrigger>
+              <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All models" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All models</SelectItem>
-                {filteredModels.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                ))}
+                {filteredModels.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         )
       }
     >
-      {filteredVariants.length === 0 && (
-        <Empty text={modelId ? "No variants for this model yet." : "No variants yet. Add your first one above."} />
-      )}
+      {filteredVariants.length === 0 && <Empty text={modelId ? "No variants for this model yet." : "No variants yet. Add your first one above."} />}
       {filteredVariants.map((v) => (
-        <Row
-          key={v.id}
-          label={v.name}
-          badge={`${v.makeName} › ${v.modelName}`}
-          onDelete={() => handleDelete(v.id, v.name)}
-          disabled={pending}
-        />
+        <EditableRow key={v.id} label={v.name} badge={`${v.makeName} › ${v.modelName}`} disabled={pending}
+          onSave={(newName) => handleUpdate(v.id, newName)}
+          onDelete={() => handleDelete(v.id, v.name)} />
       ))}
     </Section>
   );
@@ -362,15 +300,7 @@ function VariantsTab({
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
-function Section({
-  addForm,
-  filter,
-  children,
-}: {
-  addForm: React.ReactNode;
-  filter?: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function Section({ addForm, filter, children }: { addForm: React.ReactNode; filter?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border bg-card shadow-sm">
       <div className="space-y-3 border-b p-4">
@@ -383,40 +313,67 @@ function Section({
   );
 }
 
-function Row({
-  label,
-  badge,
-  onDelete,
-  disabled,
-}: {
+function EditableRow({ label, badge, onSave, onDelete, disabled }: {
   label: string;
   badge: string;
+  onSave: (newName: string) => void;
   onDelete: () => void;
   disabled: boolean;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(label);
+
+  function handleSave() {
+    if (!value.trim() || value.trim() === label) { setEditing(false); setValue(label); return; }
+    onSave(value.trim());
+    setEditing(false);
+  }
+
+  function handleCancel() { setEditing(false); setValue(label); }
+
   return (
     <li className="flex items-center justify-between gap-3 px-4 py-2.5">
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="truncate text-sm font-medium">{label}</span>
-        <span className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground capitalize">
-          {badge}
-        </span>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {editing ? (
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+            className="h-7 text-sm"
+            autoFocus
+          />
+        ) : (
+          <>
+            <span className="truncate text-sm font-medium">{label}</span>
+            <span className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground capitalize">{badge}</span>
+          </>
+        )}
       </div>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={disabled}
-        className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"
-        aria-label={`Delete ${label}`}
-      >
-        <Trash2 className="size-4" />
-      </button>
+      <div className="flex shrink-0 items-center gap-1">
+        {editing ? (
+          <>
+            <button type="button" onClick={handleSave} disabled={disabled} className="rounded p-1 text-muted-foreground transition-colors hover:bg-green-500/10 hover:text-green-500 disabled:opacity-40" aria-label="Save">
+              <Check className="size-4" />
+            </button>
+            <button type="button" onClick={handleCancel} className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent" aria-label="Cancel">
+              <X className="size-4" />
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" onClick={() => setEditing(true)} disabled={disabled} className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40" aria-label={`Edit ${label}`}>
+              <Pencil className="size-4" />
+            </button>
+            <button type="button" onClick={onDelete} disabled={disabled} className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-40" aria-label={`Delete ${label}`}>
+              <Trash2 className="size-4" />
+            </button>
+          </>
+        )}
+      </div>
     </li>
   );
 }
 
 function Empty({ text }: { text: string }) {
-  return (
-    <li className="px-4 py-6 text-center text-sm text-muted-foreground">{text}</li>
-  );
+  return <li className="px-4 py-6 text-center text-sm text-muted-foreground">{text}</li>;
 }

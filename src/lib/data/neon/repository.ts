@@ -292,17 +292,29 @@ class NeonCatalogRepository implements CatalogRepository {
   async createMake(input: VehicleMakeInput): Promise<VehicleMake> {
     const rows = await query(
       `INSERT INTO vehicle_makes (name, type) VALUES ($1, $2)
-       ON CONFLICT (name, type) DO UPDATE SET name = EXCLUDED.name
-       RETURNING *`,
+       ON CONFLICT (name, type) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
       [input.name, input.type],
     );
     const r = rows[0];
     return { id: r.id, name: r.name, type: r.type, createdAt: r.created_at };
   }
 
-  async deleteMake(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicle_makes WHERE id = $1`, [id]);
-    return true;
+  async updateMake(id: string, name: string): Promise<VehicleMake | null> {
+    const rows = await query(
+      `UPDATE vehicle_makes SET name = $1 WHERE id = $2::uuid RETURNING *`,
+      [name, id],
+    );
+    if (!rows[0]) return null;
+    const r = rows[0];
+    return { id: r.id, name: r.name, type: r.type, createdAt: r.created_at };
+  }
+
+  async deleteMake(id: string): Promise<{ ok: boolean; reason?: string }> {
+    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_models WHERE make_id = $1::uuid`, [id]);
+    const linked = count[0]?.cnt ?? 0;
+    if (linked > 0) return { ok: false, reason: `Remove the ${linked} model${linked > 1 ? "s" : ""} under this make first.` };
+    await query(`DELETE FROM vehicle_makes WHERE id = $1::uuid`, [id]);
+    return { ok: true };
   }
 
   async listModels(makeId?: string): Promise<VehicleModel[]> {
@@ -310,37 +322,41 @@ class NeonCatalogRepository implements CatalogRepository {
       ? await query(
           `SELECT m.*, mk.name AS make_name FROM vehicle_models m
            JOIN vehicle_makes mk ON mk.id = m.make_id
-           WHERE m.make_id = $1 ORDER BY m.name`,
-          [makeId],
-        )
+           WHERE m.make_id = $1::uuid ORDER BY m.name`, [makeId])
       : await query(
           `SELECT m.*, mk.name AS make_name FROM vehicle_models m
-           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY m.name`,
-        );
-    return rows.map((r: any) => ({
-      id: r.id, makeId: r.make_id, makeName: r.make_name,
-      name: r.name, createdAt: r.created_at,
-    }));
+           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY m.name`);
+    return rows.map((r: any) => ({ id: r.id, makeId: r.make_id, makeName: r.make_name, name: r.name, createdAt: r.created_at }));
   }
 
   async createModel(input: VehicleModelInput): Promise<VehicleModel> {
     const rows = await query(
-      `INSERT INTO vehicle_models (make_id, name) VALUES ($1, $2)
-       ON CONFLICT (make_id, name) DO UPDATE SET name = EXCLUDED.name
-       RETURNING *`,
+      `INSERT INTO vehicle_models (make_id, name) VALUES ($1::uuid, $2)
+       ON CONFLICT (make_id, name) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
       [input.makeId, input.name],
     );
     const r = rows[0];
-    const makeRows = await query(`SELECT name FROM vehicle_makes WHERE id = $1`, [input.makeId]);
-    return {
-      id: r.id, makeId: r.make_id, makeName: makeRows[0]?.name ?? "",
-      name: r.name, createdAt: r.created_at,
-    };
+    const makeRows = await query(`SELECT name FROM vehicle_makes WHERE id = $1::uuid`, [input.makeId]);
+    return { id: r.id, makeId: r.make_id, makeName: makeRows[0]?.name ?? "", name: r.name, createdAt: r.created_at };
   }
 
-  async deleteModel(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicle_models WHERE id = $1`, [id]);
-    return true;
+  async updateModel(id: string, name: string): Promise<VehicleModel | null> {
+    const rows = await query(
+      `UPDATE vehicle_models SET name = $1 WHERE id = $2::uuid
+       RETURNING *, (SELECT name FROM vehicle_makes WHERE id = make_id) AS make_name`,
+      [name, id],
+    );
+    if (!rows[0]) return null;
+    const r = rows[0];
+    return { id: r.id, makeId: r.make_id, makeName: r.make_name ?? "", name: r.name, createdAt: r.created_at };
+  }
+
+  async deleteModel(id: string): Promise<{ ok: boolean; reason?: string }> {
+    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_variants WHERE model_id = $1::uuid`, [id]);
+    const linked = count[0]?.cnt ?? 0;
+    if (linked > 0) return { ok: false, reason: `Remove the ${linked} variant${linked > 1 ? "s" : ""} under this model first.` };
+    await query(`DELETE FROM vehicle_models WHERE id = $1::uuid`, [id]);
+    return { ok: true };
   }
 
   async listVariants(modelId?: string): Promise<VehicleVariant[]> {
@@ -350,45 +366,44 @@ class NeonCatalogRepository implements CatalogRepository {
            FROM vehicle_variants v
            JOIN vehicle_models m ON m.id = v.model_id
            JOIN vehicle_makes mk ON mk.id = m.make_id
-           WHERE v.model_id = $1 ORDER BY v.name`,
-          [modelId],
-        )
+           WHERE v.model_id = $1::uuid ORDER BY v.name`, [modelId])
       : await query(
           `SELECT v.*, m.name AS model_name, mk.name AS make_name
            FROM vehicle_variants v
            JOIN vehicle_models m ON m.id = v.model_id
-           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY v.name`,
-        );
-    return rows.map((r: any) => ({
-      id: r.id, modelId: r.model_id, modelName: r.model_name,
-      makeName: r.make_name, name: r.name, createdAt: r.created_at,
-    }));
+           JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY v.name`);
+    return rows.map((r: any) => ({ id: r.id, modelId: r.model_id, modelName: r.model_name, makeName: r.make_name, name: r.name, createdAt: r.created_at }));
   }
 
   async createVariant(input: VehicleVariantInput): Promise<VehicleVariant> {
     const rows = await query(
-      `INSERT INTO vehicle_variants (model_id, name) VALUES ($1, $2)
-       ON CONFLICT (model_id, name) DO UPDATE SET name = EXCLUDED.name
-       RETURNING *`,
+      `INSERT INTO vehicle_variants (model_id, name) VALUES ($1::uuid, $2)
+       ON CONFLICT (model_id, name) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
       [input.modelId, input.name],
     );
     const r = rows[0];
     const modelRows = await query(
       `SELECT m.name AS model_name, mk.name AS make_name
-       FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id
-       WHERE m.id = $1`,
+       FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id WHERE m.id = $1::uuid`,
       [input.modelId],
     );
-    return {
-      id: r.id, modelId: r.model_id,
-      modelName: modelRows[0]?.model_name ?? "",
-      makeName: modelRows[0]?.make_name ?? "",
-      name: r.name, createdAt: r.created_at,
-    };
+    return { id: r.id, modelId: r.model_id, modelName: modelRows[0]?.model_name ?? "", makeName: modelRows[0]?.make_name ?? "", name: r.name, createdAt: r.created_at };
+  }
+
+  async updateVariant(id: string, name: string): Promise<VehicleVariant | null> {
+    const rows = await query(
+      `UPDATE vehicle_variants SET name = $1 WHERE id = $2::uuid
+       RETURNING *, (SELECT name FROM vehicle_models WHERE id = model_id) AS model_name,
+                   (SELECT mk.name FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id WHERE m.id = model_id) AS make_name`,
+      [name, id],
+    );
+    if (!rows[0]) return null;
+    const r = rows[0];
+    return { id: r.id, modelId: r.model_id, modelName: r.model_name ?? "", makeName: r.make_name ?? "", name: r.name, createdAt: r.created_at };
   }
 
   async deleteVariant(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicle_variants WHERE id = $1`, [id]);
+    await query(`DELETE FROM vehicle_variants WHERE id = $1::uuid`, [id]);
     return true;
   }
 }

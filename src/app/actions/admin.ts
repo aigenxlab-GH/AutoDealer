@@ -156,11 +156,19 @@ export async function createMakeAction(input: VehicleMakeInput): Promise<{ ok: b
   return { ok: true };
 }
 
-export async function deleteMakeAction(id: string): Promise<{ ok: boolean }> {
+export async function updateMakeAction(id: string, name: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
-  const ok = await catalogRepository.deleteMake(id);
+  if (!name.trim()) return { ok: false, error: "Name is required." };
+  const updated = await catalogRepository.updateMake(id, name.trim());
   revalidatePath("/admin/catalog");
-  return { ok };
+  return { ok: !!updated };
+}
+
+export async function deleteMakeAction(id: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const result = await catalogRepository.deleteMake(id);
+  if (result.ok) revalidatePath("/admin/catalog");
+  return { ok: result.ok, error: result.reason };
 }
 
 export async function createModelAction(input: VehicleModelInput): Promise<{ ok: boolean; error?: string }> {
@@ -172,11 +180,19 @@ export async function createModelAction(input: VehicleModelInput): Promise<{ ok:
   return { ok: true };
 }
 
-export async function deleteModelAction(id: string): Promise<{ ok: boolean }> {
+export async function updateModelAction(id: string, name: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
-  const ok = await catalogRepository.deleteModel(id);
+  if (!name.trim()) return { ok: false, error: "Name is required." };
+  const updated = await catalogRepository.updateModel(id, name.trim());
   revalidatePath("/admin/catalog");
-  return { ok };
+  return { ok: !!updated };
+}
+
+export async function deleteModelAction(id: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const result = await catalogRepository.deleteModel(id);
+  if (result.ok) revalidatePath("/admin/catalog");
+  return { ok: result.ok, error: result.reason };
 }
 
 export async function createVariantAction(input: VehicleVariantInput): Promise<{ ok: boolean; error?: string }> {
@@ -188,7 +204,15 @@ export async function createVariantAction(input: VehicleVariantInput): Promise<{
   return { ok: true };
 }
 
-export async function deleteVariantAction(id: string): Promise<{ ok: boolean }> {
+export async function updateVariantAction(id: string, name: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  if (!name.trim()) return { ok: false, error: "Name is required." };
+  const updated = await catalogRepository.updateVariant(id, name.trim());
+  revalidatePath("/admin/catalog");
+  return { ok: !!updated };
+}
+
+export async function deleteVariantAction(id: string): Promise<{ ok: boolean; error?: string }> {
   await requireAdmin();
   const ok = await catalogRepository.deleteVariant(id);
   revalidatePath("/admin/catalog");

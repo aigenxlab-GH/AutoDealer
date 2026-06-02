@@ -272,13 +272,20 @@ class MockCatalogRepository implements CatalogRepository {
     return clone(make);
   }
 
-  async deleteMake(id: string): Promise<boolean> {
-    const before = store.makes.length;
-    const modelsToDelete = store.models.filter((m) => m.makeId === id).map((m) => m.id);
-    store.variants = store.variants.filter((v) => !modelsToDelete.includes(v.modelId));
-    store.models = store.models.filter((m) => m.makeId !== id);
+  async updateMake(id: string, name: string): Promise<VehicleMake | null> {
+    const make = store.makes.find((m) => m.id === id);
+    if (!make) return null;
+    make.name = name;
+    store.models.filter((m) => m.makeId === id).forEach((m) => (m.makeName = name));
+    store.variants.filter((v) => store.models.find((m) => m.id === v.modelId && m.makeId === id)).forEach((v) => (v.makeName = name));
+    return clone(make);
+  }
+
+  async deleteMake(id: string): Promise<{ ok: boolean; reason?: string }> {
+    const linked = store.models.filter((m) => m.makeId === id).length;
+    if (linked > 0) return { ok: false, reason: `Remove the ${linked} model${linked > 1 ? "s" : ""} under this make first.` };
     store.makes = store.makes.filter((m) => m.id !== id);
-    return store.makes.length < before;
+    return { ok: true };
   }
 
   async listModels(makeId?: string): Promise<VehicleModel[]> {
@@ -288,21 +295,24 @@ class MockCatalogRepository implements CatalogRepository {
 
   async createModel(input: VehicleModelInput): Promise<VehicleModel> {
     const make = store.makes.find((m) => m.id === input.makeId);
-    const model: VehicleModel = {
-      ...input,
-      makeName: make?.name ?? "",
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
+    const model: VehicleModel = { ...input, makeName: make?.name ?? "", id: crypto.randomUUID(), createdAt: new Date().toISOString() };
     store.models.push(model);
     return clone(model);
   }
 
-  async deleteModel(id: string): Promise<boolean> {
-    const before = store.models.length;
-    store.variants = store.variants.filter((v) => v.modelId !== id);
+  async updateModel(id: string, name: string): Promise<VehicleModel | null> {
+    const model = store.models.find((m) => m.id === id);
+    if (!model) return null;
+    model.name = name;
+    store.variants.filter((v) => v.modelId === id).forEach((v) => (v.modelName = name));
+    return clone(model);
+  }
+
+  async deleteModel(id: string): Promise<{ ok: boolean; reason?: string }> {
+    const linked = store.variants.filter((v) => v.modelId === id).length;
+    if (linked > 0) return { ok: false, reason: `Remove the ${linked} variant${linked > 1 ? "s" : ""} under this model first.` };
     store.models = store.models.filter((m) => m.id !== id);
-    return store.models.length < before;
+    return { ok: true };
   }
 
   async listVariants(modelId?: string): Promise<VehicleVariant[]> {
@@ -312,14 +322,15 @@ class MockCatalogRepository implements CatalogRepository {
 
   async createVariant(input: VehicleVariantInput): Promise<VehicleVariant> {
     const model = store.models.find((m) => m.id === input.modelId);
-    const variant: VehicleVariant = {
-      ...input,
-      modelName: model?.name ?? "",
-      makeName: model?.makeName ?? "",
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
+    const variant: VehicleVariant = { ...input, modelName: model?.name ?? "", makeName: model?.makeName ?? "", id: crypto.randomUUID(), createdAt: new Date().toISOString() };
     store.variants.push(variant);
+    return clone(variant);
+  }
+
+  async updateVariant(id: string, name: string): Promise<VehicleVariant | null> {
+    const variant = store.variants.find((v) => v.id === id);
+    if (!variant) return null;
+    variant.name = name;
     return clone(variant);
   }
 
