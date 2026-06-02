@@ -43,6 +43,7 @@ export interface LeadRepository {
 }
 
 export interface CatalogRepository {
+  clearCatalog(): Promise<void>;
   listMakes(type?: VehicleType): Promise<VehicleMake[]>;
   createMake(input: VehicleMakeInput): Promise<VehicleMake>;
   updateMake(id: string, name: string): Promise<VehicleMake | null>;
