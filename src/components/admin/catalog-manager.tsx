@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { ComboSelect } from "@/components/ui/combo-select";
 import {
   createMakeAction, updateMakeAction, deleteMakeAction,
   createModelAction, updateModelAction, deleteModelAction,
@@ -39,7 +40,7 @@ export function CatalogManager({ makes, models, variants }: Props) {
     <div className="space-y-4">
       {/* Tab bar */}
       <div className="inline-flex rounded-lg border bg-muted p-1">
-        {(["makes", "models", "variants"] as Tab[]).map((t) => (
+        {(["variants", "models", "makes"] as Tab[]).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)}
             className={cn("rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors",
               tab === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
@@ -51,9 +52,9 @@ export function CatalogManager({ makes, models, variants }: Props) {
         ))}
       </div>
 
-      {tab === "makes"    && <MakesTab    makes={makes} />}
-      {tab === "models"   && <ModelsTab   makes={makes} models={models} />}
       {tab === "variants" && <VariantsTab makes={makes} models={models} variants={variants} />}
+      {tab === "models"   && <ModelsTab   makes={makes} models={models} />}
+      {tab === "makes"    && <MakesTab    makes={makes} />}
     </div>
   );
 }
@@ -253,13 +254,13 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
           {typedMakes.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>Make:</span>
-              <Select value={filterMake} onValueChange={(v) => setFilterMake(v ?? "")}>
-                <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All</SelectItem>
-                  {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ComboSelect
+                value={filterMake}
+                onChange={setFilterMake}
+                options={typedMakes.map((m) => ({ value: m.name, label: m.name }))}
+                allLabel="All makes"
+                triggerClassName="w-40"
+              />
             </div>
           )}
         </div>
@@ -380,21 +381,22 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
           {typedMakes.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span>Make:</span>
-              <Select value={filterMake} onValueChange={(v) => { setFilterMake(v ?? ""); setFilterModel(""); }}>
-                <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All</SelectItem>
-                  {typedMakes.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ComboSelect
+                value={filterMake}
+                onChange={(v) => { setFilterMake(v); setFilterModel(""); }}
+                options={typedMakes.map((m) => ({ value: m.name, label: m.name }))}
+                allLabel="All makes"
+                triggerClassName="w-36"
+              />
               <span>Model:</span>
-              <Select value={filterModel} onValueChange={(v) => setFilterModel(v ?? "")} disabled={!filterMake}>
-                <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All</SelectItem>
-                  {filterModels.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ComboSelect
+                value={filterModel}
+                onChange={setFilterModel}
+                options={filterModels.map((m) => ({ value: m.name, label: m.name }))}
+                allLabel="All models"
+                disabled={!filterMake}
+                triggerClassName="w-36"
+              />
             </div>
           )}
         </div>
