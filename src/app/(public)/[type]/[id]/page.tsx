@@ -71,11 +71,19 @@ export default async function VehicleDetailPage({
   params: Promise<{ type: string; id: string }>;
 }) {
   const { type, id } = await params;
-  const vehicle = await loadVehicle(type, id);
-  if (!vehicle) notFound();
 
-  await vehicleRepository.incrementViews(vehicle.id);
-  const similar = await vehicleRepository.getSimilar(vehicle, 4);
+  let vehicle: Awaited<ReturnType<typeof loadVehicle>>;
+  let similar: Vehicle[] = [];
+
+  try {
+    vehicle = await loadVehicle(type, id);
+    if (!vehicle) notFound();
+    await vehicleRepository.incrementViews(vehicle.id);
+    similar = await vehicleRepository.getSimilar(vehicle, 4);
+  } catch (err) {
+    console.error("[VehicleDetailPage] error:", err);
+    throw err;
+  }
 
   const highlights = [
     { icon: Calendar, label: "Year", value: String(vehicle.year) },
