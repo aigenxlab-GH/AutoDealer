@@ -10,6 +10,8 @@ import {
   RotateCcw,
   Search,
   Trash2,
+  Car,
+  Bike,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,9 @@ import { formatPriceFull, formatKms } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { deleteVehicleAction, setSoldAction } from "@/app/actions/admin";
 
+type TypeFilter   = "all" | "car" | "bike";
+type StatusFilter = "all" | "active" | "sold";
+
 export function InventoryTable({
   vehicles,
   leadCounts,
@@ -28,18 +33,30 @@ export function InventoryTable({
   leadCounts: Record<string, number>;
 }) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query,  setQuery]  = useState("");
+  const [typeF,  setTypeF]  = useState<TypeFilter>("all");
+  const [statusF, setStatusF] = useState<StatusFilter>("all");
   const [pending, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return vehicles;
-    return vehicles.filter((v) =>
-      `${v.make} ${v.model} ${v.variant ?? ""} ${v.registrationNumber ?? ""}`
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [vehicles, query]);
+    return vehicles.filter((v) => {
+      if (typeF   !== "all" && v.type !== typeF)                  return false;
+      if (statusF === "active" && v.isSold)                       return false;
+      if (statusF === "sold"   && !v.isSold)                      return false;
+      if (q && !`${v.make} ${v.model} ${v.variant ?? ""} ${v.registrationNumber ?? ""}`.toLowerCase().includes(q))
+        return false;
+      return true;
+    });
+  }, [vehicles, query, typeF, statusF]);
+
+  const counts = useMemo(() => ({
+    all:    vehicles.length,
+    car:    vehicles.filter((v) => v.type === "car").length,
+    bike:   vehicles.filter((v) => v.type === "bike").length,
+    active: vehicles.filter((v) => !v.isSold).length,
+    sold:   vehicles.filter((v) =>  v.isSold).length,
+  }), [vehicles]);
 
   function toggleSold(v: Vehicle) {
     startTransition(async () => {
@@ -61,14 +78,45 @@ export function InventoryTable({
 
   return (
     <div className="rounded-xl border bg-card">
-      <div className="border-b p-3">
-        <div className="relative max-w-sm">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3 border-b p-3">
+        {/* Type toggle */}
+        <div className="inline-flex rounded-lg border bg-muted p-0.5">
+          {([["all","All",null], ["car","Cars",Car], ["bike","Bikes",Bike]] as [TypeFilter, string, React.ElementType | null][]).map(([val, label, Icon]) => (
+            <button key={val} type="button" onClick={() => setTypeF(val)}
+              className={cn("flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                typeF === val ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+              {Icon && <Icon className="size-3" />}
+              {label}
+              <span className="rounded-full bg-muted-foreground/20 px-1.5 text-[10px] font-semibold">
+                {val === "all" ? counts.all : val === "car" ? counts.car : counts.bike}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Status filter */}
+        <div className="inline-flex rounded-lg border bg-muted p-0.5">
+          {([["all","All"], ["active","Active"], ["sold","Sold"]] as [StatusFilter, string][]).map(([val, label]) => (
+            <button key={val} type="button" onClick={() => setStatusF(val)}
+              className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                statusF === val ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+              {label}
+              <span className="ml-1.5 rounded-full bg-muted-foreground/20 px-1.5 text-[10px] font-semibold">
+                {val === "all" ? counts.all : val === "active" ? counts.active : counts.sold}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative ml-auto max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search inventory…"
-            className="h-9 pl-9"
+            placeholder="Search make, model, reg…"
+            className="h-8 pl-9 text-sm"
           />
         </div>
       </div>
@@ -87,7 +135,7 @@ export function InventoryTable({
           </thead>
           <tbody>
             {filtered.map((v) => (
-              <tr key={v.id} className="border-b last:border-0">
+              <tr key={v.id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-muted">
@@ -167,11 +215,10 @@ export function InventoryTable({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td
-                  colSpan={6}
-                  className="p-10 text-center text-sm text-muted-foreground"
-                >
-                  No vehicles match your search.
+                <td colSpan={6} className="p-10 text-center text-sm text-muted-foreground">
+                  {vehicles.length === 0
+                    ? "No vehicles yet — add your first one."
+                    : "No vehicles match your filters."}
                 </td>
               </tr>
             )}
