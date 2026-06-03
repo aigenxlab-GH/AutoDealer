@@ -47,8 +47,9 @@ export function MediaUploader({
     try {
       const urls = await Promise.all(picked.map(uploadImage));
       commit([...images, ...urls]);
-    } catch {
-      toast.error("Image upload failed. Please try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Upload failed: ${msg}`);
     } finally {
       setUploading(false);
     }

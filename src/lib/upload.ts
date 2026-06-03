@@ -60,7 +60,10 @@ export async function uploadImage(file: File): Promise<string> {
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     { method: "POST", body: form },
   );
-  if (!res.ok) throw new Error("Cloudinary upload failed");
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody?.error?.message ?? `Cloudinary error ${res.status}`);
+  }
   const data = await res.json();
   return data.secure_url as string;
 }
