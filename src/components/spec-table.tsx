@@ -36,6 +36,8 @@ function buildSpecs(v: Vehicle): { label: string; value: string }[] {
       label: "Insurance Valid Till",
       value: formatDate(v.insuranceValidTill),
     });
+  if (v.ncapRating != null)
+    rows.push({ label: "Global NCAP Rating", value: `${"★".repeat(v.ncapRating)}${"☆".repeat(5 - v.ncapRating)} (${v.ncapRating}/5)` });
   rows.push({ label: "Listing Views", value: formatNumberIN(v.views) });
 
   return rows;

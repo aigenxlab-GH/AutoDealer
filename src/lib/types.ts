@@ -36,6 +36,8 @@ export interface Vehicle {
   /** ISO date string. */
   insuranceValidTill?: string;
   description?: string;
+  /** Global NCAP safety rating: 0–5 stars. undefined = not rated / not applicable. */
+  ncapRating?: number;
   images: string[];
   primaryImageUrl: string;
   isSold: boolean;
