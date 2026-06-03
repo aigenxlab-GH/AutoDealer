@@ -32,7 +32,13 @@ import type {
 import { saveVehicleAction } from "@/app/actions/admin";
 import { ComboSelect } from "@/components/ui/combo-select";
 
-const FUELS: FuelType[] = ["petrol", "diesel", "cng", "electric", "hybrid"];
+const FUELS: { value: FuelType; label: string }[] = [
+  { value: "petrol",     label: "Petrol" },
+  { value: "diesel",     label: "Diesel" },
+  { value: "petrol-cng", label: "Petrol & CNG" },
+  { value: "electric",   label: "Electric" },
+  { value: "hybrid",     label: "Hybrid" },
+];
 const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
 const CAR_BODY = ["Hatchback", "Sedan", "SUV", "MUV", "Coupe", "Convertible"];
 const BIKE_BODY = ["Commuter", "Sport", "Cruiser", "Scooter", "Adventure", "Cafe Racer"];
@@ -428,7 +434,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
                   </SelectTrigger>
                   <SelectContent>
                     {FUELS.map((f) => (
-                      <SelectItem key={f} value={f} className="capitalize">{f}</SelectItem>
+                      <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

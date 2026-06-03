@@ -25,7 +25,13 @@ export interface FilterBarProps {
   kmsMax: number;
 }
 
-const FUELS = ["petrol", "diesel", "cng", "electric", "hybrid"];
+const FUELS: { value: string; label: string }[] = [
+  { value: "petrol",     label: "Petrol" },
+  { value: "diesel",     label: "Diesel" },
+  { value: "petrol-cng", label: "Petrol & CNG" },
+  { value: "electric",   label: "Electric" },
+  { value: "hybrid",     label: "Hybrid" },
+];
 const TRANSMISSIONS = ["manual", "automatic"];
 const PRICE_STEP = 25_000;
 const KMS_STEP = 5_000;
@@ -138,8 +144,8 @@ export function FilterBar({
               <SelectContent>
                 <SelectItem value="all">All Fuel Types</SelectItem>
                 {FUELS.map((f) => (
-                  <SelectItem key={f} value={f}>
-                    {capitalize(f)}
+                  <SelectItem key={f.value} value={f.value}>
+                    {f.label}
                   </SelectItem>
                 ))}
               </SelectContent>

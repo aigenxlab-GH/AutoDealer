@@ -15,7 +15,7 @@ const SORTS: VehicleSort[] = [
   "year-desc",
   "kms-asc",
 ];
-const FUELS: FuelType[] = ["petrol", "diesel", "cng", "electric", "hybrid"];
+const FUELS: FuelType[] = ["petrol", "diesel", "petrol-cng", "electric", "hybrid"];
 const TRANSMISSIONS: Transmission[] = ["manual", "automatic"];
 
 function first(v: string | string[] | undefined): string | undefined {

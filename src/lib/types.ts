@@ -3,7 +3,7 @@
 
 export type VehicleType = "car" | "bike";
 
-export type FuelType = "petrol" | "diesel" | "cng" | "electric" | "hybrid";
+export type FuelType = "petrol" | "diesel" | "petrol-cng" | "electric" | "hybrid";
 
 export type Transmission = "manual" | "automatic";
 
