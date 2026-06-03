@@ -109,7 +109,7 @@ class NeonVehicleRepository implements VehicleRepository {
   }
 
   async getById(id: string): Promise<Vehicle | null> {
-    const rows = await query(`SELECT * FROM vehicles WHERE id = $1`, [id]);
+    const rows = await query(`SELECT * FROM vehicles WHERE id = $1::uuid`, [id]);
     return rows[0] ? toVehicle(rows[0]) : null;
   }
 
@@ -130,7 +130,7 @@ class NeonVehicleRepository implements VehicleRepository {
     const margin = vehicle.price * 0.35;
     const rows = await query(
       `SELECT * FROM vehicles
-       WHERE is_sold = false AND id != $1
+       WHERE is_sold = false AND id != $1::uuid
          AND (make = $2 OR body_type = $3 OR ABS(price - $4) <= $5)
        ORDER BY ABS(price - $4)
        LIMIT $6`,
@@ -195,7 +195,7 @@ class NeonVehicleRepository implements VehicleRepository {
   }
 
   async remove(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicles WHERE id = $1`, [id]);
+    await query(`DELETE FROM vehicles WHERE id = $1::uuid`, [id]);
     return true;
   }
 
@@ -228,7 +228,7 @@ class NeonLeadRepository implements LeadRepository {
 
   async updateStatus(id: string, status: LeadStatus): Promise<Lead | null> {
     const rows = await query(
-      `UPDATE leads SET status = $1 WHERE id = $2 RETURNING *`,
+      `UPDATE leads SET status = $1 WHERE id = $2::uuid RETURNING *`,
       [status, id],
     );
     return rows[0] ? toLead(rows[0]) : null;
