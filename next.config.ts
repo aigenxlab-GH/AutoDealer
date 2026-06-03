@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   // The animated dev indicator keeps the renderer from going idle, which blocks
   // automated screenshots. Off in dev; has no effect on production.
   devIndicators: false,
+  // Increase server action body limit to handle multiple compressed images
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   images: {
     remotePatterns: [
       // Mock seed photos.

@@ -1,29 +1,53 @@
 // Client-side image upload. Uploads directly to Cloudinary when configured,
-// otherwise falls back to an inline data URL (mock mode) so the admin form
+// otherwise falls back to a compressed inline data URL so the admin form
 // works with zero external accounts.
+// NOTE: We intentionally do NOT read NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME here.
+// cloudName comes from the server's /api/cloudinary-sign response, so the
+// admin-only secret vars (CLOUDINARY_CLOUD_NAME etc.) never need a NEXT_PUBLIC_ prefix.
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+export const cloudinaryEnabled = true; // determined at runtime via the sign endpoint
 
-export const cloudinaryEnabled = Boolean(CLOUD_NAME);
+const MAX_PX   = 1200;  // longest edge in pixels
+const QUALITY  = 0.82;  // JPEG quality
 
-function readAsDataUrl(file: File): Promise<string> {
+/** Compress + resize an image client-side using Canvas. */
+function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        // Calculate new dimensions keeping aspect ratio
+        let { width, height } = img;
+        if (width > MAX_PX || height > MAX_PX) {
+          if (width >= height) { height = Math.round((height * MAX_PX) / width); width = MAX_PX; }
+          else                 { width  = Math.round((width  * MAX_PX) / height); height = MAX_PX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width  = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", QUALITY));
+      };
+      img.src = e.target!.result as string;
+    };
     reader.readAsDataURL(file);
   });
 }
 
 export async function uploadImage(file: File): Promise<string> {
-  if (!CLOUD_NAME) return readAsDataUrl(file);
-
+  // Ask the server for a signed upload token.
+  // cloudName is returned by the server so we never need NEXT_PUBLIC_ prefix.
   const signRes = await fetch("/api/cloudinary-sign", { method: "POST" });
   if (!signRes.ok) {
-    // Fall back gracefully if signing isn't available.
-    return readAsDataUrl(file);
+    // Cloudinary not configured — fall back to compressed local data URL
+    return compressImage(file);
   }
-  const { apiKey, timestamp, signature, folder } = await signRes.json();
+
+  const { cloudName, apiKey, timestamp, signature, folder } = await signRes.json();
 
   const form = new FormData();
   form.append("file", file);
@@ -33,10 +57,10 @@ export async function uploadImage(file: File): Promise<string> {
   form.append("folder", folder);
 
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     { method: "POST", body: form },
   );
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) throw new Error("Cloudinary upload failed");
   const data = await res.json();
   return data.secure_url as string;
 }
