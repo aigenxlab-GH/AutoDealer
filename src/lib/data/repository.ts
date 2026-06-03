@@ -62,8 +62,20 @@ export interface CatalogRepository {
 }
 
 export interface ShopSettings {
-  mapsLink: string;  // Google Maps share URL → opens in Maps app
-  mapsEmbed: string; // Google Maps embed src URL → shown as iframe
+  // Location
+  mapsLink:    string;  // Google Maps share URL → opens in Maps app
+  mapsEmbed:   string;  // Google Maps embed src URL → shown as iframe
+  // Address
+  addressLine: string;
+  city:        string;
+  state:       string;
+  pincode:     string;
+  openHours:   string;
+  // Phone numbers (up to 4)
+  phone1: string;
+  phone2: string;
+  phone3: string;
+  phone4: string;
 }
 
 export interface SettingsRepository {

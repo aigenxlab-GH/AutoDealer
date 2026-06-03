@@ -77,7 +77,16 @@ export default async function HomePage() {
     settingsRepository.getShopSettings(),
   ]);
 
-  const mapsLink = shopSettings.mapsLink || siteConfig.dealer.mapsUrl;
+  // Fall back to siteConfig values if admin hasn't saved settings yet
+  const mapsLink   = shopSettings.mapsLink    || siteConfig.dealer.mapsUrl;
+  const address    = shopSettings.addressLine || siteConfig.dealer.addressLine;
+  const city       = shopSettings.city        || siteConfig.dealer.city;
+  const state      = shopSettings.state       || siteConfig.dealer.state;
+  const pincode    = shopSettings.pincode     || siteConfig.dealer.pincode;
+  const openHours  = shopSettings.openHours   || siteConfig.dealer.openHours;
+  const phones     = [shopSettings.phone1, shopSettings.phone2, shopSettings.phone3, shopSettings.phone4]
+    .filter(Boolean) as string[];
+  const displayPhones = phones.length ? phones : [siteConfig.dealer.phoneDisplay];
 
   const yearsActive =
     new Date().getFullYear() - siteConfig.dealer.establishedYear;
@@ -387,8 +396,8 @@ export default async function HomePage() {
                   <div>
                     <p className="text-sm font-semibold text-white/80">Address</p>
                     <p className="mt-0.5 text-sm text-white/45">
-                      {siteConfig.dealer.addressLine},<br />
-                      {siteConfig.dealer.city}, {siteConfig.dealer.state} – {siteConfig.dealer.pincode}
+                      {address},<br />
+                      {city}, {state} – {pincode}
                     </p>
                   </div>
                 </div>
@@ -400,7 +409,7 @@ export default async function HomePage() {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-white/80">Open Hours</p>
-                    <p className="mt-0.5 text-sm text-white/45">{siteConfig.dealer.openHours}</p>
+                    <p className="mt-0.5 text-sm text-white/45">{openHours}</p>
                   </div>
                 </div>
 
@@ -411,10 +420,14 @@ export default async function HomePage() {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-white/80">Call Us</p>
-                    <a href={`tel:+${siteConfig.dealer.whatsappNumber}`}
-                      className="mt-0.5 text-sm text-white/45 hover:text-white/70 transition-colors">
-                      {siteConfig.dealer.phoneDisplay}
-                    </a>
+                    <div className="mt-0.5 space-y-0.5">
+                      {displayPhones.map((ph, i) => (
+                        <a key={i} href={`tel:${ph.replace(/\s/g, "")}`}
+                          className="block text-sm text-white/45 hover:text-white/70 transition-colors">
+                          {ph}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

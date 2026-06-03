@@ -43,6 +43,7 @@ if (!globalForMock.__mockStore) {
     makes: [],
     models: [],
     variants: [],
+    settings: {},
   };
 }
 
@@ -347,14 +348,33 @@ export const mockCatalogRepository = new MockCatalogRepository();
 
 class MockSettingsRepository implements SettingsRepository {
   async getShopSettings(): Promise<ShopSettings> {
+    const s = store.settings;
     return {
-      mapsLink:  store.settings["maps_link"]  ?? "",
-      mapsEmbed: store.settings["maps_embed"] ?? "",
+      mapsLink:    s["maps_link"]    ?? "",
+      mapsEmbed:   s["maps_embed"]   ?? "",
+      addressLine: s["address_line"] ?? "",
+      city:        s["city"]         ?? "",
+      state:       s["state"]        ?? "",
+      pincode:     s["pincode"]      ?? "",
+      openHours:   s["open_hours"]   ?? "",
+      phone1:      s["phone_1"]      ?? "",
+      phone2:      s["phone_2"]      ?? "",
+      phone3:      s["phone_3"]      ?? "",
+      phone4:      s["phone_4"]      ?? "",
     };
   }
   async saveShopSettings(data: ShopSettings): Promise<void> {
-    store.settings["maps_link"]  = data.mapsLink;
-    store.settings["maps_embed"] = data.mapsEmbed;
+    store.settings["maps_link"]    = data.mapsLink;
+    store.settings["maps_embed"]   = data.mapsEmbed;
+    store.settings["address_line"] = data.addressLine;
+    store.settings["city"]         = data.city;
+    store.settings["state"]        = data.state;
+    store.settings["pincode"]      = data.pincode;
+    store.settings["open_hours"]   = data.openHours;
+    store.settings["phone_1"]      = data.phone1;
+    store.settings["phone_2"]      = data.phone2;
+    store.settings["phone_3"]      = data.phone3;
+    store.settings["phone_4"]      = data.phone4;
   }
 }
 

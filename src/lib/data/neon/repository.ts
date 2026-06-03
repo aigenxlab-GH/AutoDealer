@@ -410,23 +410,54 @@ class NeonCatalogRepository implements CatalogRepository {
   }
 }
 
+const ALL_SETTING_KEYS = [
+  "maps_link","maps_embed","address_line","city","state","pincode","open_hours",
+  "phone_1","phone_2","phone_3","phone_4",
+] as const;
+
 class NeonSettingsRepository implements SettingsRepository {
   async getShopSettings(): Promise<ShopSettings> {
     const rows = await query<{ key: string; value: string }>(
-      `SELECT key, value FROM settings WHERE key IN ('maps_link', 'maps_embed')`
+      `SELECT key, value FROM settings WHERE key = ANY($1)`,
+      [ALL_SETTING_KEYS]
     );
-    const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    const m = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     return {
-      mapsLink:  map["maps_link"]  ?? "",
-      mapsEmbed: map["maps_embed"] ?? "",
+      mapsLink:    m["maps_link"]    ?? "",
+      mapsEmbed:   m["maps_embed"]   ?? "",
+      addressLine: m["address_line"] ?? "",
+      city:        m["city"]         ?? "",
+      state:       m["state"]        ?? "",
+      pincode:     m["pincode"]      ?? "",
+      openHours:   m["open_hours"]   ?? "",
+      phone1:      m["phone_1"]      ?? "",
+      phone2:      m["phone_2"]      ?? "",
+      phone3:      m["phone_3"]      ?? "",
+      phone4:      m["phone_4"]      ?? "",
     };
   }
 
   async saveShopSettings(data: ShopSettings): Promise<void> {
+    // Upsert all keys in one query
+    const entries: [string, string][] = [
+      ["maps_link",    data.mapsLink],
+      ["maps_embed",   data.mapsEmbed],
+      ["address_line", data.addressLine],
+      ["city",         data.city],
+      ["state",        data.state],
+      ["pincode",      data.pincode],
+      ["open_hours",   data.openHours],
+      ["phone_1",      data.phone1],
+      ["phone_2",      data.phone2],
+      ["phone_3",      data.phone3],
+      ["phone_4",      data.phone4],
+    ];
+    const placeholders = entries.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(", ");
+    const params = entries.flatMap(([k, v]) => [k, v]);
     await query(
-      `INSERT INTO settings (key, value) VALUES ('maps_link', $1), ('maps_embed', $2)
+      `INSERT INTO settings (key, value) VALUES ${placeholders}
        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-      [data.mapsLink, data.mapsEmbed]
+      params
     );
   }
 }
