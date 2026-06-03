@@ -130,7 +130,7 @@ class NeonVehicleRepository implements VehicleRepository {
   }
 
   async getById(id: string): Promise<Vehicle | null> {
-    const rows = await query(`SELECT * FROM vehicles WHERE id = $1::uuid`, [id]);
+    const rows = await query(`SELECT * FROM vehicles WHERE id::text = $1`, [id]);
     return rows[0] ? toVehicle(rows[0]) : null;
   }
 
@@ -151,7 +151,7 @@ class NeonVehicleRepository implements VehicleRepository {
     const margin = vehicle.price * 0.35;
     const rows = await query(
       `SELECT * FROM vehicles
-       WHERE is_sold = false AND id != $1::uuid
+       WHERE is_sold = false AND id::text != $1
          AND (make = $2 OR body_type = $3 OR ABS(price - $4) <= $5)
        ORDER BY ABS(price - $4)
        LIMIT $6`,
@@ -216,12 +216,12 @@ class NeonVehicleRepository implements VehicleRepository {
   }
 
   async remove(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicles WHERE id = $1::uuid`, [id]);
+    await query(`DELETE FROM vehicles WHERE id::text = $1`, [id]);
     return true;
   }
 
   async incrementViews(id: string): Promise<void> {
-    await query(`UPDATE vehicles SET views = views + 1 WHERE id = $1::uuid`, [id]);
+    await query(`UPDATE vehicles SET views = views + 1 WHERE id::text = $1`, [id]);
   }
 
   async distinctMakes(type?: VehicleType): Promise<string[]> {
@@ -249,7 +249,7 @@ class NeonLeadRepository implements LeadRepository {
 
   async updateStatus(id: string, status: LeadStatus): Promise<Lead | null> {
     const rows = await query(
-      `UPDATE leads SET status = $1 WHERE id = $2::uuid RETURNING *`,
+      `UPDATE leads SET status = $1 WHERE id::text = $2 RETURNING *`,
       [status, id],
     );
     return rows[0] ? toLead(rows[0]) : null;
@@ -324,7 +324,7 @@ class NeonCatalogRepository implements CatalogRepository {
 
   async updateMake(id: string, name: string): Promise<VehicleMake | null> {
     const rows = await query(
-      `UPDATE vehicle_makes SET name = $1 WHERE id = $2::uuid RETURNING *`,
+      `UPDATE vehicle_makes SET name = $1 WHERE id::text = $2 RETURNING *`,
       [name, id],
     );
     if (!rows[0]) return null;
@@ -333,10 +333,10 @@ class NeonCatalogRepository implements CatalogRepository {
   }
 
   async deleteMake(id: string): Promise<{ ok: boolean; reason?: string }> {
-    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_models WHERE make_id = $1::uuid`, [id]);
+    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_models WHERE make_id::text = $1`, [id]);
     const linked = count[0]?.cnt ?? 0;
     if (linked > 0) return { ok: false, reason: `Remove the ${linked} model${linked > 1 ? "s" : ""} under this make first.` };
-    await query(`DELETE FROM vehicle_makes WHERE id = $1::uuid`, [id]);
+    await query(`DELETE FROM vehicle_makes WHERE id::text = $1`, [id]);
     return { ok: true };
   }
 
@@ -345,7 +345,7 @@ class NeonCatalogRepository implements CatalogRepository {
       ? await query(
           `SELECT m.*, mk.name AS make_name FROM vehicle_models m
            JOIN vehicle_makes mk ON mk.id = m.make_id
-           WHERE m.make_id = $1::uuid ORDER BY m.name`, [makeId])
+           WHERE m.make_id::text = $1 ORDER BY m.name`, [makeId])
       : await query(
           `SELECT m.*, mk.name AS make_name FROM vehicle_models m
            JOIN vehicle_makes mk ON mk.id = m.make_id ORDER BY m.name`);
@@ -354,18 +354,18 @@ class NeonCatalogRepository implements CatalogRepository {
 
   async createModel(input: VehicleModelInput): Promise<VehicleModel> {
     const rows = await query(
-      `INSERT INTO vehicle_models (make_id, name) VALUES ($1::uuid, $2)
+      `INSERT INTO vehicle_models (make_id, name) VALUES ($1, $2)
        ON CONFLICT (make_id, name) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
       [input.makeId, input.name],
     );
     const r = rows[0];
-    const makeRows = await query(`SELECT name FROM vehicle_makes WHERE id = $1::uuid`, [input.makeId]);
+    const makeRows = await query(`SELECT name FROM vehicle_makes WHERE id::text = $1`, [input.makeId]);
     return { id: r.id, makeId: r.make_id, makeName: makeRows[0]?.name ?? "", name: r.name, createdAt: r.created_at };
   }
 
   async updateModel(id: string, name: string): Promise<VehicleModel | null> {
     const rows = await query(
-      `UPDATE vehicle_models SET name = $1 WHERE id = $2::uuid
+      `UPDATE vehicle_models SET name = $1 WHERE id::text = $2
        RETURNING *, (SELECT name FROM vehicle_makes WHERE id = make_id) AS make_name`,
       [name, id],
     );
@@ -375,10 +375,10 @@ class NeonCatalogRepository implements CatalogRepository {
   }
 
   async deleteModel(id: string): Promise<{ ok: boolean; reason?: string }> {
-    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_variants WHERE model_id = $1::uuid`, [id]);
+    const count = await query(`SELECT COUNT(*)::int AS cnt FROM vehicle_variants WHERE model_id::text = $1`, [id]);
     const linked = count[0]?.cnt ?? 0;
     if (linked > 0) return { ok: false, reason: `Remove the ${linked} variant${linked > 1 ? "s" : ""} under this model first.` };
-    await query(`DELETE FROM vehicle_models WHERE id = $1::uuid`, [id]);
+    await query(`DELETE FROM vehicle_models WHERE id::text = $1`, [id]);
     return { ok: true };
   }
 
@@ -389,7 +389,7 @@ class NeonCatalogRepository implements CatalogRepository {
            FROM vehicle_variants v
            JOIN vehicle_models m ON m.id = v.model_id
            JOIN vehicle_makes mk ON mk.id = m.make_id
-           WHERE v.model_id = $1::uuid ORDER BY v.name`, [modelId])
+           WHERE v.model_id::text = $1 ORDER BY v.name`, [modelId])
       : await query(
           `SELECT v.*, m.name AS model_name, mk.name AS make_name
            FROM vehicle_variants v
@@ -400,14 +400,14 @@ class NeonCatalogRepository implements CatalogRepository {
 
   async createVariant(input: VehicleVariantInput): Promise<VehicleVariant> {
     const rows = await query(
-      `INSERT INTO vehicle_variants (model_id, name) VALUES ($1::uuid, $2)
+      `INSERT INTO vehicle_variants (model_id, name) VALUES ($1, $2)
        ON CONFLICT (model_id, name) DO UPDATE SET name = EXCLUDED.name RETURNING *`,
       [input.modelId, input.name],
     );
     const r = rows[0];
     const modelRows = await query(
       `SELECT m.name AS model_name, mk.name AS make_name
-       FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id WHERE m.id = $1::uuid`,
+       FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id WHERE m.id::text = $1`,
       [input.modelId],
     );
     return { id: r.id, modelId: r.model_id, modelName: modelRows[0]?.model_name ?? "", makeName: modelRows[0]?.make_name ?? "", name: r.name, createdAt: r.created_at };
@@ -415,7 +415,7 @@ class NeonCatalogRepository implements CatalogRepository {
 
   async updateVariant(id: string, name: string): Promise<VehicleVariant | null> {
     const rows = await query(
-      `UPDATE vehicle_variants SET name = $1 WHERE id = $2::uuid
+      `UPDATE vehicle_variants SET name = $1 WHERE id::text = $2
        RETURNING *, (SELECT name FROM vehicle_models WHERE id = model_id) AS model_name,
                    (SELECT mk.name FROM vehicle_models m JOIN vehicle_makes mk ON mk.id = m.make_id WHERE m.id = model_id) AS make_name`,
       [name, id],
@@ -426,7 +426,7 @@ class NeonCatalogRepository implements CatalogRepository {
   }
 
   async deleteVariant(id: string): Promise<boolean> {
-    await query(`DELETE FROM vehicle_variants WHERE id = $1::uuid`, [id]);
+    await query(`DELETE FROM vehicle_variants WHERE id::text = $1`, [id]);
     return true;
   }
 }
