@@ -27,10 +27,10 @@ interface Props {
 type Tab = "makes" | "models" | "variants";
 
 // Shared column templates — must match between TableShell header and EditableRow
-// Order: leading static cols → entity name (1fr) → [type badge for makes] → actions
-const COLS_MAKES    = "minmax(0,1fr) 80px 88px";   // Name | Type | Actions
-const COLS_MODELS   = "140px minmax(0,1fr) 88px";   // Make | Model Name | Actions
-const COLS_VARIANTS = "120px 120px minmax(0,1fr) 88px"; // Make | Model | Variant Name | Actions
+// Type badge is rendered inline (not a separate column) so all grids are compact
+const COLS_MAKES    = "minmax(0,1fr) 88px";              // Name+TypePill | Actions
+const COLS_MODELS   = "180px minmax(0,1fr) 88px";        // Make+TypePill | Model Name | Actions
+const COLS_VARIANTS = "180px 140px minmax(0,1fr) 88px";  // Make+TypePill | Model | Variant Name | Actions
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
@@ -157,13 +157,13 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
       filterBar={
         <SearchBar value={search} onChange={setSearch} placeholder="Search makes…" count={filtered.length} total={makes.filter((m) => m.type === typeFilter).length} />
       }
-      headers={["Make Name", "Type", "Actions"]}
+      headers={["Make Name", "Actions"]}
       colWidths={COLS_MAKES}
     >
       {filtered.length === 0
         ? <EmptyRow text={search ? `No makes match "${search}"` : `No ${typeFilter} makes yet — add one above.`} />
         : filtered.map((m) => (
-            <EditableRow key={m.id} label={m.name} trailingBadge={m.type} colWidths={COLS_MAKES} disabled={pending}
+            <EditableRow key={m.id} label={m.name} inlineBadge={m.type} colWidths={COLS_MAKES} disabled={pending}
               onSave={(n) => handleUpdate(m.id, n)} onDelete={() => handleDelete(m.id, m.name)} />
           ))}
     </TableShell>
@@ -272,7 +272,9 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
       {filtered.length === 0
         ? <EmptyRow text={search ? `No models match "${search}"` : filterMake ? `No models under "${filterMake}"` : `No ${typeFilter} models yet — add one above.`} />
         : filtered.map((m) => (
-            <EditableRow key={m.id} label={m.name} leadingCells={[m.makeName]} colWidths={COLS_MODELS} disabled={pending}
+            <EditableRow key={m.id} label={m.name}
+              leadingCells={[{ text: m.makeName, badge: typeFilter }]}
+              colWidths={COLS_MODELS} disabled={pending}
               onSave={(n) => handleUpdate(m.id, n)} onDelete={() => handleDelete(m.id, m.name)} />
           ))}
     </TableShell>
@@ -408,7 +410,9 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
       {filtered.length === 0
         ? <EmptyRow text={search ? `No variants match "${search}"` : `No ${typeFilter} variants yet — add one above.`} />
         : filtered.map((v) => (
-            <EditableRow key={v.id} label={v.name} leadingCells={[v.makeName, v.modelName]} colWidths={COLS_VARIANTS} disabled={pending}
+            <EditableRow key={v.id} label={v.name}
+              leadingCells={[{ text: v.makeName, badge: typeFilter }, { text: v.modelName }]}
+              colWidths={COLS_VARIANTS} disabled={pending}
               onSave={(n) => handleUpdate(v.id, n)} onDelete={() => handleDelete(v.id, v.name)} />
           ))}
     </TableShell>
@@ -470,10 +474,19 @@ function SearchBar({ value, onChange, placeholder, count, total }: {
   );
 }
 
-function EditableRow({ label, leadingCells = [], trailingBadge, colWidths, onSave, onDelete, disabled }: {
+function TypePill({ type }: { type: string }) {
+  return (
+    <span className={cn(
+      "ml-1.5 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold capitalize",
+      type === "car" ? "bg-blue-500/10 text-blue-600" : "bg-orange-500/10 text-orange-600",
+    )}>{type}</span>
+  );
+}
+
+function EditableRow({ label, inlineBadge, leadingCells = [], colWidths, onSave, onDelete, disabled }: {
   label: string;
-  leadingCells?: string[];  // static cells rendered BEFORE the editable label (e.g. Make, Model)
-  trailingBadge?: string;   // static cell rendered AFTER the label (e.g. type: car/bike for Makes)
+  inlineBadge?: string;                             // type pill shown inline after the label (Makes tab)
+  leadingCells?: { text: string; badge?: string }[]; // cells before the label; badge adds TypePill (Models/Variants)
   colWidths: string;
   onSave: (n: string) => void; onDelete: () => void; disabled: boolean;
 }) {
@@ -488,20 +501,25 @@ function EditableRow({ label, leadingCells = [], trailingBadge, colWidths, onSav
   return (
     <li className="grid items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.03]"
       style={{ gridTemplateColumns: colWidths }}>
-      {/* Leading static cells (Make, Model) */}
+
+      {/* Leading cells — Make (+ TypePill) and optional Model */}
       {leadingCells.map((cell, i) => (
-        <span key={i} className="truncate text-xs text-muted-foreground">{cell}</span>
+        <span key={i} className="flex min-w-0 items-center">
+          <span className="truncate text-xs text-muted-foreground">{cell.text}</span>
+          {cell.badge && <TypePill type={cell.badge} />}
+        </span>
       ))}
-      {/* Editable label cell */}
+
+      {/* Editable entity name cell */}
       {editing
         ? <Input value={value} onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setEditing(false); setValue(label); } }}
             className="h-7 text-sm" autoFocus />
-        : <span className="truncate text-sm font-medium">{label}</span>}
-      {/* Trailing badge (type for Makes) */}
-      {trailingBadge !== undefined && (
-        <span className="text-xs text-muted-foreground capitalize">{trailingBadge}</span>
-      )}
+        : <span className="flex min-w-0 items-center">
+            <span className="truncate text-sm font-medium">{label}</span>
+            {inlineBadge && <TypePill type={inlineBadge} />}
+          </span>}
+
       {/* Actions */}
       <div className="flex items-center justify-end gap-0.5">
         {editing ? (
