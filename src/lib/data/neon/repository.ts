@@ -55,7 +55,12 @@ function toVehicle(r: any): Vehicle {
     registrationCity: r.registration_city ?? undefined,
     insuranceValidTill: r.insurance_valid_till ?? undefined,
     description: r.description ?? undefined,
-    images: r.images ?? [],
+    // r.images may be a TEXT[] array (correct) or a JSON string (legacy bad insert)
+    images: Array.isArray(r.images)
+      ? r.images
+      : typeof r.images === "string"
+        ? (() => { try { return JSON.parse(r.images); } catch { return []; } })()
+        : [],
     primaryImageUrl: r.primary_image_url,
     isSold: r.is_sold,
     isFeatured: r.is_featured,
@@ -155,7 +160,7 @@ class NeonVehicleRepository implements VehicleRepository {
         input.mileage ?? null, input.color ?? null, input.bodyType ?? null,
         input.registrationNumber ?? null, input.registrationCity ?? null,
         input.insuranceValidTill ?? null, input.description ?? null,
-        JSON.stringify(input.images), input.primaryImageUrl,
+        input.images, input.primaryImageUrl,
         input.isSold, input.isFeatured,
       ],
     );
@@ -181,14 +186,14 @@ class NeonVehicleRepository implements VehicleRepository {
       if (key in input) {
         const val = input[key];
         sets.push(`${col} = $${i++}`);
-        params.push(key === "images" ? JSON.stringify(val) : (val === "" ? null : val ?? null));
+        params.push(val === "" ? null : val ?? null);
       }
     }
     if (!sets.length) return this.getById(id);
 
     params.push(id);
     const rows = await query(
-      `UPDATE vehicles SET ${sets.join(", ")} WHERE id = $${i} RETURNING *`,
+      `UPDATE vehicles SET ${sets.join(", ")} WHERE id = $${i}::uuid RETURNING *`,
       params,
     );
     return rows[0] ? toVehicle(rows[0]) : null;
