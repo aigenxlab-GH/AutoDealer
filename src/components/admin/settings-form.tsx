@@ -111,10 +111,27 @@ export function SettingsForm({ initial }: { initial: ShopSettings }) {
             placeholder="https://maps.app.goo.gl/xxxxx" className="font-mono text-xs" />
         </FieldGroup>
 
-        <FieldGroup label='Embed URL (optional — for map preview on homepage)'
-          hint='Google Maps → Share → Embed a map → copy only the URL inside src="..."'>
+        <FieldGroup label='Embed URL (for map preview on homepage)'>
           <Input value={form.mapsEmbed} onChange={(e) => set("mapsEmbed", e.target.value)}
             placeholder="https://www.google.com/maps/embed?pb=..." className="font-mono text-xs" />
+          {form.mapsEmbed && !form.mapsEmbed.includes("google.com/maps/embed") && (
+            <p className="mt-1 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-600">
+              ⚠️ This doesn&apos;t look like a valid embed URL. It must start with{" "}
+              <span className="font-mono">https://www.google.com/maps/embed</span>.
+              <br />
+              <strong>How to get it:</strong> Google Maps → Share → &ldquo;Embed a map&rdquo; tab → copy the URL inside{" "}
+              <span className="font-mono">src=&quot;...&quot;</span> from the iframe code shown.
+            </p>
+          )}
+          {form.mapsEmbed && form.mapsEmbed.includes("google.com/maps/embed") && (
+            <p className="mt-1 text-xs text-emerald-600">✓ Valid embed URL</p>
+          )}
+          {!form.mapsEmbed && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Google Maps → Share → &ldquo;Embed a map&rdquo; tab → copy only the URL inside{" "}
+              <span className="font-mono">src=&quot;...&quot;</span>
+            </p>
+          )}
         </FieldGroup>
 
         {form.mapsEmbed && (

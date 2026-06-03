@@ -177,7 +177,7 @@ class NeonVehicleRepository implements VehicleRepository {
         input.mileage ?? null, input.color ?? null, input.bodyType ?? null,
         input.registrationNumber ?? null, input.registrationCity ?? null,
         input.insuranceValidTill ?? null, input.description ?? null,
-        input.ncapRating ?? null, input.images, input.primaryImageUrl,
+        input.ncapRating ?? null, JSON.stringify(input.images), input.primaryImageUrl,
         input.isSold, input.isFeatured,
       ],
     );

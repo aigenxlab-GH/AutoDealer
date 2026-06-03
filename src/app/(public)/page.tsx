@@ -366,7 +366,7 @@ export default async function HomePage() {
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {/* Map embed or placeholder */}
             <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/5">
-              {shopSettings.mapsEmbed ? (
+              {shopSettings.mapsEmbed?.includes("google.com/maps/embed") ? (
                 <iframe
                   src={shopSettings.mapsEmbed}
                   width="100%"
@@ -378,10 +378,15 @@ export default async function HomePage() {
                   title="Shop location"
                 />
               ) : (
-                <div className="flex h-[340px] flex-col items-center justify-center gap-3 text-white/30">
-                  <MapPin className="size-10 opacity-40" />
-                  <p className="text-sm">Map not configured yet</p>
-                </div>
+                <a
+                  href={mapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-[340px] flex-col items-center justify-center gap-3 text-white/30 transition-colors hover:text-white/50"
+                >
+                  <MapPin className="size-12 opacity-40" />
+                  <p className="text-sm">Click to open in Google Maps</p>
+                </a>
               )}
             </div>
 

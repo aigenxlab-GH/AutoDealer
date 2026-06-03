@@ -524,8 +524,8 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
         />
       </Card>
 
-      {/* NCAP Safety Rating */}
-      <Card title="Safety">
+      {/* NCAP Safety Rating — cars only */}
+      {form.type === "car" && <Card title="Safety">
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
             Global NCAP Safety Rating
@@ -569,7 +569,7 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
             Click a star to set the rating. Click the same star again or Clear to remove.
           </p>
         </div>
-      </Card>
+      </Card>}
 
       {/* Media */}
       <Card title="Photos">
