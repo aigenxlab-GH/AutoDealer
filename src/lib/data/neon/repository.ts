@@ -55,12 +55,28 @@ function toVehicle(r: any): Vehicle {
     registrationCity: r.registration_city ?? undefined,
     insuranceValidTill: r.insurance_valid_till ?? undefined,
     description: r.description ?? undefined,
-    // r.images may be a TEXT[] array (correct) or a JSON string (legacy bad insert)
-    images: Array.isArray(r.images)
-      ? r.images
-      : typeof r.images === "string"
-        ? (() => { try { return JSON.parse(r.images); } catch { return []; } })()
-        : [],
+    // r.images comes back as a TEXT[] JavaScript array from Neon.
+    // Legacy bad inserts used JSON.stringify(), so PostgreSQL stored the whole
+    // JSON string as a single TEXT[] element: ['["url1","url2"]'].
+    // We detect that case and unwrap it.
+    images: (() => {
+      const raw = r.images;
+      if (!Array.isArray(raw)) {
+        // Unexpected: try JSON-parsing a bare string
+        if (typeof raw === "string") {
+          try { return JSON.parse(raw); } catch { return []; }
+        }
+        return [];
+      }
+      // Normal case: array of URL strings
+      if (raw.length !== 1) return raw;
+      const first = raw[0];
+      // If the single element looks like a JSON array, unwrap it
+      if (typeof first === "string" && first.trimStart().startsWith("[")) {
+        try { const parsed = JSON.parse(first); if (Array.isArray(parsed)) return parsed; } catch { /* fall through */ }
+      }
+      return raw;
+    })(),
     primaryImageUrl: r.primary_image_url,
     isSold: r.is_sold,
     isFeatured: r.is_featured,
