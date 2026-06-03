@@ -27,9 +27,10 @@ interface Props {
 type Tab = "makes" | "models" | "variants";
 
 // Shared column templates — must match between TableShell header and EditableRow
-const COLS_MAKES    = "minmax(0,1fr) 80px 88px";
-const COLS_MODELS   = "minmax(0,1fr) 140px 88px";
-const COLS_VARIANTS = "minmax(0,1fr) 120px 120px 88px";
+// Order: leading static cols → entity name (1fr) → [type badge for makes] → actions
+const COLS_MAKES    = "minmax(0,1fr) 80px 88px";   // Name | Type | Actions
+const COLS_MODELS   = "140px minmax(0,1fr) 88px";   // Make | Model Name | Actions
+const COLS_VARIANTS = "120px 120px minmax(0,1fr) 88px"; // Make | Model | Variant Name | Actions
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,7 @@ function MakesTab({ makes }: { makes: VehicleMake[] }) {
       {filtered.length === 0
         ? <EmptyRow text={search ? `No makes match "${search}"` : `No ${typeFilter} makes yet — add one above.`} />
         : filtered.map((m) => (
-            <EditableRow key={m.id} label={m.name} badge={m.type} colWidths={COLS_MAKES} disabled={pending}
+            <EditableRow key={m.id} label={m.name} trailingBadge={m.type} colWidths={COLS_MAKES} disabled={pending}
               onSave={(n) => handleUpdate(m.id, n)} onDelete={() => handleDelete(m.id, m.name)} />
           ))}
     </TableShell>
@@ -265,13 +266,13 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
           <SearchBar value={search} onChange={setSearch} placeholder="Search models…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
         </div>
       }
-      headers={["Model Name", "Make", "Actions"]}
+      headers={["Make", "Model Name", "Actions"]}
       colWidths={COLS_MODELS}
     >
       {filtered.length === 0
         ? <EmptyRow text={search ? `No models match "${search}"` : filterMake ? `No models under "${filterMake}"` : `No ${typeFilter} models yet — add one above.`} />
         : filtered.map((m) => (
-            <EditableRow key={m.id} label={m.name} badge={m.makeName} colWidths={COLS_MODELS} disabled={pending}
+            <EditableRow key={m.id} label={m.name} leadingCells={[m.makeName]} colWidths={COLS_MODELS} disabled={pending}
               onSave={(n) => handleUpdate(m.id, n)} onDelete={() => handleDelete(m.id, m.name)} />
           ))}
     </TableShell>
@@ -401,13 +402,13 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
           <SearchBar value={search} onChange={setSearch} placeholder="Search variants…" count={filtered.length} total={typedVariants.length} />
         </div>
       }
-      headers={["Variant Name", "Make", "Model", "Actions"]}
+      headers={["Make", "Model", "Variant Name", "Actions"]}
       colWidths={COLS_VARIANTS}
     >
       {filtered.length === 0
         ? <EmptyRow text={search ? `No variants match "${search}"` : `No ${typeFilter} variants yet — add one above.`} />
         : filtered.map((v) => (
-            <EditableRow key={v.id} label={v.name} badge={v.makeName} badge2={v.modelName} colWidths={COLS_VARIANTS} disabled={pending}
+            <EditableRow key={v.id} label={v.name} leadingCells={[v.makeName, v.modelName]} colWidths={COLS_VARIANTS} disabled={pending}
               onSave={(n) => handleUpdate(v.id, n)} onDelete={() => handleDelete(v.id, v.name)} />
           ))}
     </TableShell>
@@ -469,13 +470,15 @@ function SearchBar({ value, onChange, placeholder, count, total }: {
   );
 }
 
-function EditableRow({ label, badge, badge2, colWidths, onSave, onDelete, disabled }: {
-  label: string; badge: string; badge2?: string; colWidths: string;
+function EditableRow({ label, leadingCells = [], trailingBadge, colWidths, onSave, onDelete, disabled }: {
+  label: string;
+  leadingCells?: string[];  // static cells rendered BEFORE the editable label (e.g. Make, Model)
+  trailingBadge?: string;   // static cell rendered AFTER the label (e.g. type: car/bike for Makes)
+  colWidths: string;
   onSave: (n: string) => void; onDelete: () => void; disabled: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(label);
-  const cols = colWidths;
 
   function handleSave() {
     if (!value.trim() || value.trim() === label) { setEditing(false); setValue(label); return; }
@@ -484,14 +487,22 @@ function EditableRow({ label, badge, badge2, colWidths, onSave, onDelete, disabl
 
   return (
     <li className="grid items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.03]"
-      style={{ gridTemplateColumns: cols }}>
+      style={{ gridTemplateColumns: colWidths }}>
+      {/* Leading static cells (Make, Model) */}
+      {leadingCells.map((cell, i) => (
+        <span key={i} className="truncate text-xs text-muted-foreground">{cell}</span>
+      ))}
+      {/* Editable label cell */}
       {editing
         ? <Input value={value} onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setEditing(false); setValue(label); } }}
             className="h-7 text-sm" autoFocus />
         : <span className="truncate text-sm font-medium">{label}</span>}
-      <span className="text-xs text-muted-foreground capitalize">{badge}</span>
-      {badge2 && <span className="text-xs text-muted-foreground">{badge2}</span>}
+      {/* Trailing badge (type for Makes) */}
+      {trailingBadge !== undefined && (
+        <span className="text-xs text-muted-foreground capitalize">{trailingBadge}</span>
+      )}
+      {/* Actions */}
       <div className="flex items-center justify-end gap-0.5">
         {editing ? (
           <>
