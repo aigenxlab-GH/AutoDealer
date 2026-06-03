@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ComboSelect } from "@/components/ui/combo-select";
 import {
   createMakeAction, updateMakeAction, deleteMakeAction,
   createModelAction, updateModelAction, deleteModelAction,
@@ -177,22 +176,19 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
   const [pending, startTransition] = useTransition();
   const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
   const [search, setSearch] = useState("");
-  const [filterMake, setFilterMake] = useState("");
   const [adding, setAdding] = useState(false);
   const [addMake, setAddMake] = useState("");
   const [newName, setNewName] = useState("");
 
   const typedMakes  = makes.filter((m) => m.type === typeFilter);
   const addMakeId   = typedMakes.find((m) => m.name === addMake)?.id ?? "";
-  const filterMakeId = typedMakes.find((m) => m.name === filterMake)?.id ?? "";
   const typedMakeIds = typedMakes.map((m) => m.id);
 
   const filtered = models
     .filter((m) => typedMakeIds.includes(m.makeId))
-    .filter((m) => !filterMakeId || m.makeId === filterMakeId)
     .filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.makeName.toLowerCase().includes(search.toLowerCase()));
 
-  function handleTypeChange(t: VehicleType) { setTypeFilter(t); setSearch(""); setFilterMake(""); setAdding(false); setAddMake(""); setNewName(""); }
+  function handleTypeChange(t: VehicleType) { setTypeFilter(t); setSearch(""); setAdding(false); setAddMake(""); setNewName(""); }
 
   function handleAdd() {
     if (!newName.trim() || !addMakeId) return;
@@ -250,27 +246,13 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
         </>
       }
       filterBar={
-        <div className="flex items-center gap-3">
-          {typedMakes.length > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span>Make:</span>
-              <ComboSelect
-                value={filterMake}
-                onChange={setFilterMake}
-                options={typedMakes.map((m) => ({ value: m.name, label: m.name }))}
-                allLabel="All makes"
-                triggerClassName="w-40"
-              />
-            </div>
-          )}
-          <SearchBar value={search} onChange={setSearch} placeholder="Search models…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
-        </div>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search make or model…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
       }
       headers={["Make", "Model Name", "Actions"]}
       colWidths={COLS_MODELS}
     >
       {filtered.length === 0
-        ? <EmptyRow text={search ? `No models match "${search}"` : filterMake ? `No models under "${filterMake}"` : `No ${typeFilter} models yet — add one above.`} />
+        ? <EmptyRow text={search ? `No models match "${search}"` : `No ${typeFilter} models yet — add one above.`} />
         : filtered.map((m) => (
             <EditableRow key={m.id} label={m.name}
               leadingCells={[{ text: m.makeName, badge: typeFilter }]}
@@ -286,14 +268,12 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models: VehicleModel[]; variants: VehicleVariant[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [typeFilter, setTypeFilter]   = useState<VehicleType>("car");
-  const [search, setSearch]           = useState("");
-  const [filterMake, setFilterMake]   = useState("");
-  const [filterModel, setFilterModel] = useState("");
-  const [adding, setAdding]           = useState(false);
-  const [addMake, setAddMake]         = useState("");
-  const [addModel, setAddModel]       = useState("");
-  const [newName, setNewName]         = useState("");
+  const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
+  const [search, setSearch]         = useState("");
+  const [adding, setAdding]         = useState(false);
+  const [addMake, setAddMake]       = useState("");
+  const [addModel, setAddModel]     = useState("");
+  const [newName, setNewName]       = useState("");
 
   const typedMakes   = makes.filter((m) => m.type === typeFilter);
   const typedMakeIds = typedMakes.map((m) => m.id);
@@ -301,21 +281,15 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
   const addModels    = addMakeId ? models.filter((m) => m.makeId === addMakeId) : [];
   const addModelId   = addModels.find((m) => m.name === addModel)?.id ?? "";
 
-  const filterMakeId  = typedMakes.find((m) => m.name === filterMake)?.id ?? "";
-  const filterModels  = filterMakeId ? models.filter((m) => m.makeId === filterMakeId) : models.filter((m) => typedMakeIds.includes(m.makeId));
-  const filterModelId = filterModels.find((m) => m.name === filterModel)?.id ?? "";
-
   const typedVariants = variants.filter((v) => {
     const model = models.find((m) => m.id === v.modelId);
     return model && typedMakeIds.includes(model.makeId);
   });
   const filtered = typedVariants
-    .filter((v) => !filterModelId || v.modelId === filterModelId)
-    .filter((v) => !filterMakeId  || filterModels.some((m) => m.id === v.modelId))
-    .filter((v) => !search        || [v.name, v.makeName, v.modelName].some((s) => s.toLowerCase().includes(search.toLowerCase())));
+    .filter((v) => !search || [v.name, v.makeName, v.modelName].some((s) => s.toLowerCase().includes(search.toLowerCase())));
 
   function handleTypeChange(t: VehicleType) {
-    setTypeFilter(t); setSearch(""); setFilterMake(""); setFilterModel("");
+    setTypeFilter(t); setSearch("");
     setAdding(false); setAddMake(""); setAddModel(""); setNewName("");
   }
 
@@ -379,30 +353,7 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
         </>
       }
       filterBar={
-        <div className="flex flex-wrap items-center gap-3">
-          {typedMakes.length > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span>Make:</span>
-              <ComboSelect
-                value={filterMake}
-                onChange={(v) => { setFilterMake(v); setFilterModel(""); }}
-                options={typedMakes.map((m) => ({ value: m.name, label: m.name }))}
-                allLabel="All makes"
-                triggerClassName="w-36"
-              />
-              <span>Model:</span>
-              <ComboSelect
-                value={filterModel}
-                onChange={setFilterModel}
-                options={filterModels.map((m) => ({ value: m.name, label: m.name }))}
-                allLabel="All models"
-                disabled={!filterMake}
-                triggerClassName="w-36"
-              />
-            </div>
-          )}
-          <SearchBar value={search} onChange={setSearch} placeholder="Search variants…" count={filtered.length} total={typedVariants.length} />
-        </div>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search make, model or variant…" count={filtered.length} total={typedVariants.length} />
       }
       headers={["Make", "Model", "Variant Name", "Actions"]}
       colWidths={COLS_VARIANTS}
