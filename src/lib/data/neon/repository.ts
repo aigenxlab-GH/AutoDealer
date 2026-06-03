@@ -203,7 +203,11 @@ class NeonVehicleRepository implements VehicleRepository {
       if (key in input) {
         const val = input[key];
         sets.push(`${col} = $${i++}`);
-        params.push(val === "" ? null : val ?? null);
+        // images must be JSON-stringified for UPDATE (neon driver sends arrays
+        // as PostgreSQL array literals in SET clauses, but the column is JSONB)
+        params.push(key === "images"
+          ? JSON.stringify(val ?? [])
+          : val === "" ? null : val ?? null);
       }
     }
     if (!sets.length) return this.getById(id);
