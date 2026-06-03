@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { vehicleRepository, leadRepository, financeCompanyRepository, catalogRepository } from "@/lib/data";
+import { vehicleRepository, leadRepository, financeCompanyRepository, catalogRepository, settingsRepository } from "@/lib/data";
 import { getAdminSession } from "@/lib/auth-server";
 import type { FinanceCompanyInput, LeadStatus, VehicleMakeInput, VehicleModelInput, VehicleVariantInput, VehicleInput } from "@/lib/types";
+import type { ShopSettings } from "@/lib/data/repository";
 
 async function requireAdmin() {
   const session = await getAdminSession();
@@ -217,5 +218,24 @@ export async function deleteVariantAction(id: string): Promise<{ ok: boolean; er
   const ok = await catalogRepository.deleteVariant(id);
   revalidatePath("/admin/catalog");
   return { ok };
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+export async function getShopSettingsAction(): Promise<ShopSettings> {
+  await requireAdmin();
+  return settingsRepository.getShopSettings();
+}
+
+export async function saveShopSettingsAction(data: ShopSettings): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  try {
+    await settingsRepository.saveShopSettings(data);
+    revalidatePath("/");
+    revalidatePath("/admin/settings");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
 }
 

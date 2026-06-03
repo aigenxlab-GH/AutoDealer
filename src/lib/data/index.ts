@@ -1,8 +1,9 @@
-import type { CatalogRepository, LeadRepository, VehicleRepository } from "./repository";
+import type { CatalogRepository, LeadRepository, SettingsRepository, VehicleRepository } from "./repository";
 import {
   mockCatalogRepository,
   mockFinanceCompanyRepository,
   mockLeadRepository,
+  mockSettingsRepository,
   mockVehicleRepository,
 } from "./mock/repository";
 import {
@@ -14,6 +15,7 @@ import {
   neonLeadRepository,
   neonFinanceCompanyRepository,
   neonCatalogRepository,
+  neonSettingsRepository,
 } from "./neon/repository";
 
 // Selects the active backend. Defaults to "mock" so the app runs with zero
@@ -28,6 +30,7 @@ function resolve(): {
   leads: LeadRepository;
   finance: import("./repository").FinanceCompanyRepository;
   catalog: CatalogRepository;
+  settings: SettingsRepository;
 } {
   switch (source) {
     case "neon":
@@ -36,6 +39,7 @@ function resolve(): {
         leads: neonLeadRepository,
         finance: neonFinanceCompanyRepository,
         catalog: neonCatalogRepository,
+        settings: neonSettingsRepository,
       };
     case "supabase":
       return {
@@ -43,6 +47,7 @@ function resolve(): {
         leads: supabaseLeadRepository,
         finance: mockFinanceCompanyRepository,
         catalog: mockCatalogRepository,
+        settings: mockSettingsRepository,
       };
     case "mock":
     default:
@@ -51,6 +56,7 @@ function resolve(): {
         leads: mockLeadRepository,
         finance: mockFinanceCompanyRepository,
         catalog: mockCatalogRepository,
+        settings: mockSettingsRepository,
       };
   }
 }
@@ -61,5 +67,6 @@ export const vehicleRepository = repos.vehicles;
 export const leadRepository = repos.leads;
 export const financeCompanyRepository = repos.finance;
 export const catalogRepository = repos.catalog;
+export const settingsRepository = repos.settings;
 
-export type { VehicleRepository, LeadRepository, FinanceCompanyRepository, CatalogRepository } from "./repository";
+export type { VehicleRepository, LeadRepository, FinanceCompanyRepository, CatalogRepository, SettingsRepository } from "./repository";

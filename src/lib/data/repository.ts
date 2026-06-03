@@ -61,6 +61,16 @@ export interface CatalogRepository {
   deleteVariant(id: string): Promise<boolean>;
 }
 
+export interface ShopSettings {
+  mapsLink: string;  // Google Maps share URL → opens in Maps app
+  mapsEmbed: string; // Google Maps embed src URL → shown as iframe
+}
+
+export interface SettingsRepository {
+  getShopSettings(): Promise<ShopSettings>;
+  saveShopSettings(data: ShopSettings): Promise<void>;
+}
+
 export interface FinanceCompanyRepository {
   /** activeOnly=true returns only active companies, sorted by sortOrder. */
   list(activeOnly?: boolean): Promise<FinanceCompany[]>;

@@ -19,6 +19,8 @@ import type {
   CatalogRepository,
   FinanceCompanyRepository,
   LeadRepository,
+  SettingsRepository,
+  ShopSettings,
   VehicleRepository,
 } from "@/lib/data/repository";
 import { getNeonPool } from "@/lib/neon/client";
@@ -408,7 +410,29 @@ class NeonCatalogRepository implements CatalogRepository {
   }
 }
 
+class NeonSettingsRepository implements SettingsRepository {
+  async getShopSettings(): Promise<ShopSettings> {
+    const rows = await query<{ key: string; value: string }>(
+      `SELECT key, value FROM settings WHERE key IN ('maps_link', 'maps_embed')`
+    );
+    const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    return {
+      mapsLink:  map["maps_link"]  ?? "",
+      mapsEmbed: map["maps_embed"] ?? "",
+    };
+  }
+
+  async saveShopSettings(data: ShopSettings): Promise<void> {
+    await query(
+      `INSERT INTO settings (key, value) VALUES ('maps_link', $1), ('maps_embed', $2)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+      [data.mapsLink, data.mapsEmbed]
+    );
+  }
+}
+
 export const neonVehicleRepository = new NeonVehicleRepository();
 export const neonLeadRepository = new NeonLeadRepository();
 export const neonFinanceCompanyRepository = new NeonFinanceCompanyRepository();
 export const neonCatalogRepository = new NeonCatalogRepository();
+export const neonSettingsRepository = new NeonSettingsRepository();

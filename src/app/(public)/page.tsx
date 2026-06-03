@@ -5,7 +5,11 @@ import {
   Banknote,
   Bike,
   Car,
+  Clock,
+  MapPin,
   MessageCircle,
+  Navigation,
+  Phone,
   ShieldCheck,
   Star,
   Wrench,
@@ -13,7 +17,7 @@ import {
 import { VehicleGrid } from "@/components/vehicle-grid";
 import { CategoryCard } from "@/components/category-card";
 import { SectionHeading } from "@/components/section-heading";
-import { vehicleRepository } from "@/lib/data";
+import { vehicleRepository, settingsRepository } from "@/lib/data";
 import { siteConfig } from "@/config/site";
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp";
 import { DealerJsonLd } from "@/components/json-ld";
@@ -66,11 +70,14 @@ const HERO_IMG =
   "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85";
 
 export default async function HomePage() {
-  const [featured, cars, bikes] = await Promise.all([
+  const [featured, cars, bikes, shopSettings] = await Promise.all([
     vehicleRepository.getFeatured(8),
     vehicleRepository.list({ type: "car" }),
     vehicleRepository.list({ type: "bike" }),
+    settingsRepository.getShopSettings(),
   ]);
+
+  const mapsLink = shopSettings.mapsLink || siteConfig.dealer.mapsUrl;
 
   const yearsActive =
     new Date().getFullYear() - siteConfig.dealer.establishedYear;
@@ -338,6 +345,86 @@ export default async function HomePage() {
                 </figcaption>
               </figure>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── LOCATE US ───────────────────────────────────────────────── */}
+      <section className="py-14" style={{ background: "#0c0d10" }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading title="Visit Our Showroom" subtitle="Come see us in person — we'd love to help you find your perfect vehicle" centred />
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {/* Map embed or placeholder */}
+            <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/5">
+              {shopSettings.mapsEmbed ? (
+                <iframe
+                  src={shopSettings.mapsEmbed}
+                  width="100%"
+                  height="340"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Shop location"
+                />
+              ) : (
+                <div className="flex h-[340px] flex-col items-center justify-center gap-3 text-white/30">
+                  <MapPin className="size-10 opacity-40" />
+                  <p className="text-sm">Map not configured yet</p>
+                </div>
+              )}
+            </div>
+
+            {/* Address & contact details */}
+            <div className="flex flex-col justify-center gap-5">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: "rgba(201,151,58,0.12)", color: "#c9973a" }}>
+                    <MapPin className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white/80">Address</p>
+                    <p className="mt-0.5 text-sm text-white/45">
+                      {siteConfig.dealer.addressLine},<br />
+                      {siteConfig.dealer.city}, {siteConfig.dealer.state} – {siteConfig.dealer.pincode}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: "rgba(201,151,58,0.12)", color: "#c9973a" }}>
+                    <Clock className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white/80">Open Hours</p>
+                    <p className="mt-0.5 text-sm text-white/45">{siteConfig.dealer.openHours}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: "rgba(201,151,58,0.12)", color: "#c9973a" }}>
+                    <Phone className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white/80">Call Us</p>
+                    <a href={`tel:+${siteConfig.dealer.whatsappNumber}`}
+                      className="mt-0.5 text-sm text-white/45 hover:text-white/70 transition-colors">
+                      {siteConfig.dealer.phoneDisplay}
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <a href={mapsLink} target="_blank" rel="noopener noreferrer"
+                className="inline-flex w-fit items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: "#c9973a", color: "#1a0f00" }}>
+                <Navigation className="size-4" /> Get Directions
+              </a>
+            </div>
           </div>
         </div>
       </section>

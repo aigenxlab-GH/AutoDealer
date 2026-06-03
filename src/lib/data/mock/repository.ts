@@ -16,7 +16,7 @@ import type {
   VehicleVariant,
   VehicleVariantInput,
 } from "@/lib/types";
-import type { CatalogRepository, FinanceCompanyRepository, LeadRepository, VehicleRepository } from "@/lib/data/repository";
+import type { CatalogRepository, FinanceCompanyRepository, LeadRepository, SettingsRepository, ShopSettings, VehicleRepository } from "@/lib/data/repository";
 import { seedVehicles } from "./vehicles";
 import { seedLeads } from "./leads";
 import { seedFinanceCompanies } from "./finance-companies";
@@ -30,6 +30,7 @@ interface MockStore {
   makes: VehicleMake[];
   models: VehicleModel[];
   variants: VehicleVariant[];
+  settings: Record<string, string>;
 }
 
 const globalForMock = globalThis as unknown as { __mockStore?: MockStore };
@@ -51,6 +52,7 @@ const store = globalForMock.__mockStore;
 if (!store.makes) store.makes = [];
 if (!store.models) store.models = [];
 if (!store.variants) store.variants = [];
+if (!store.settings) store.settings = {};
 
 const clone = <T>(value: T): T =>
   typeof structuredClone === "function"
@@ -342,3 +344,18 @@ class MockCatalogRepository implements CatalogRepository {
 }
 
 export const mockCatalogRepository = new MockCatalogRepository();
+
+class MockSettingsRepository implements SettingsRepository {
+  async getShopSettings(): Promise<ShopSettings> {
+    return {
+      mapsLink:  store.settings["maps_link"]  ?? "",
+      mapsEmbed: store.settings["maps_embed"] ?? "",
+    };
+  }
+  async saveShopSettings(data: ShopSettings): Promise<void> {
+    store.settings["maps_link"]  = data.mapsLink;
+    store.settings["maps_embed"] = data.mapsEmbed;
+  }
+}
+
+export const mockSettingsRepository = new MockSettingsRepository();

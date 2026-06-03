@@ -11,6 +11,7 @@ import {
   Landmark,
   ExternalLink,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 import { siteConfig } from "@/config/site";
@@ -22,6 +23,7 @@ const NAV = [
   { href: "/admin/leads", label: "Leads", icon: Inbox },
   { href: "/admin/finance", label: "Finance", icon: Landmark },
   { href: "/admin/catalog", label: "Catalog", icon: BookOpen },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminNav({ email }: { email?: string }) {
