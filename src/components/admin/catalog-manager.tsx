@@ -175,7 +175,8 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
-  const [search, setSearch] = useState("");
+  const [searchMake,  setSearchMake]  = useState("");
+  const [searchModel, setSearchModel] = useState("");
   const [adding, setAdding] = useState(false);
   const [addMake, setAddMake] = useState("");
   const [newName, setNewName] = useState("");
@@ -186,9 +187,10 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 
   const filtered = models
     .filter((m) => typedMakeIds.includes(m.makeId))
-    .filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.makeName.toLowerCase().includes(search.toLowerCase()));
+    .filter((m) => !searchMake  || m.makeName.toLowerCase().includes(searchMake.toLowerCase()))
+    .filter((m) => !searchModel || m.name.toLowerCase().includes(searchModel.toLowerCase()));
 
-  function handleTypeChange(t: VehicleType) { setTypeFilter(t); setSearch(""); setAdding(false); setAddMake(""); setNewName(""); }
+  function handleTypeChange(t: VehicleType) { setTypeFilter(t); setSearchMake(""); setSearchModel(""); setAdding(false); setAddMake(""); setNewName(""); }
 
   function handleAdd() {
     if (!newName.trim() || !addMakeId) return;
@@ -246,13 +248,16 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
         </>
       }
       filterBar={
-        <SearchBar value={search} onChange={setSearch} placeholder="Search make or model…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchBar value={searchMake}  onChange={setSearchMake}  placeholder="Search make…"  count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} showCount={false} />
+          <SearchBar value={searchModel} onChange={setSearchModel} placeholder="Search model…" count={filtered.length} total={models.filter((m) => typedMakeIds.includes(m.makeId)).length} />
+        </div>
       }
       headers={["Make", "Model Name", "Actions"]}
       colWidths={COLS_MODELS}
     >
       {filtered.length === 0
-        ? <EmptyRow text={search ? `No models match "${search}"` : `No ${typeFilter} models yet — add one above.`} />
+        ? <EmptyRow text={(searchMake || searchModel) ? "No models match your search." : `No ${typeFilter} models yet — add one above.`} />
         : filtered.map((m) => (
             <EditableRow key={m.id} label={m.name}
               leadingCells={[{ text: m.makeName, badge: typeFilter }]}
@@ -268,12 +273,14 @@ function ModelsTab({ makes, models }: { makes: VehicleMake[]; models: VehicleMod
 function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models: VehicleModel[]; variants: VehicleVariant[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [typeFilter, setTypeFilter] = useState<VehicleType>("car");
-  const [search, setSearch]         = useState("");
-  const [adding, setAdding]         = useState(false);
-  const [addMake, setAddMake]       = useState("");
-  const [addModel, setAddModel]     = useState("");
-  const [newName, setNewName]       = useState("");
+  const [typeFilter, setTypeFilter]       = useState<VehicleType>("car");
+  const [searchMake,    setSearchMake]    = useState("");
+  const [searchModel,   setSearchModel]   = useState("");
+  const [searchVariant, setSearchVariant] = useState("");
+  const [adding, setAdding]               = useState(false);
+  const [addMake, setAddMake]             = useState("");
+  const [addModel, setAddModel]           = useState("");
+  const [newName, setNewName]             = useState("");
 
   const typedMakes   = makes.filter((m) => m.type === typeFilter);
   const typedMakeIds = typedMakes.map((m) => m.id);
@@ -286,10 +293,12 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
     return model && typedMakeIds.includes(model.makeId);
   });
   const filtered = typedVariants
-    .filter((v) => !search || [v.name, v.makeName, v.modelName].some((s) => s.toLowerCase().includes(search.toLowerCase())));
+    .filter((v) => !searchMake    || v.makeName.toLowerCase().includes(searchMake.toLowerCase()))
+    .filter((v) => !searchModel   || v.modelName.toLowerCase().includes(searchModel.toLowerCase()))
+    .filter((v) => !searchVariant || v.name.toLowerCase().includes(searchVariant.toLowerCase()));
 
   function handleTypeChange(t: VehicleType) {
-    setTypeFilter(t); setSearch("");
+    setTypeFilter(t); setSearchMake(""); setSearchModel(""); setSearchVariant("");
     setAdding(false); setAddMake(""); setAddModel(""); setNewName("");
   }
 
@@ -353,13 +362,17 @@ function VariantsTab({ makes, models, variants }: { makes: VehicleMake[]; models
         </>
       }
       filterBar={
-        <SearchBar value={search} onChange={setSearch} placeholder="Search make, model or variant…" count={filtered.length} total={typedVariants.length} />
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchBar value={searchMake}    onChange={setSearchMake}    placeholder="Search make…"    count={filtered.length} total={typedVariants.length} showCount={false} />
+          <SearchBar value={searchModel}   onChange={setSearchModel}   placeholder="Search model…"   count={filtered.length} total={typedVariants.length} showCount={false} />
+          <SearchBar value={searchVariant} onChange={setSearchVariant} placeholder="Search variant…" count={filtered.length} total={typedVariants.length} />
+        </div>
       }
       headers={["Make", "Model", "Variant Name", "Actions"]}
       colWidths={COLS_VARIANTS}
     >
       {filtered.length === 0
-        ? <EmptyRow text={search ? `No variants match "${search}"` : `No ${typeFilter} variants yet — add one above.`} />
+        ? <EmptyRow text={(searchMake || searchModel || searchVariant) ? "No variants match your search." : `No ${typeFilter} variants yet — add one above.`} />
         : filtered.map((v) => (
             <EditableRow key={v.id} label={v.name}
               leadingCells={[{ text: v.makeName, badge: typeFilter }, { text: v.modelName }]}
@@ -401,16 +414,16 @@ function TableShell({ toolbar, filterBar, headers, colWidths, children }: {
   );
 }
 
-function SearchBar({ value, onChange, placeholder, count, total }: {
+function SearchBar({ value, onChange, placeholder, count, total, showCount = true }: {
   value: string; onChange: (v: string) => void; placeholder: string;
-  count: number; total: number;
+  count: number; total: number; showCount?: boolean;
 }) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-          className="h-7 w-48 pl-7 text-xs" />
+          className="h-7 w-40 pl-7 text-xs" />
         {value && (
           <button type="button" onClick={() => onChange("")}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -418,7 +431,7 @@ function SearchBar({ value, onChange, placeholder, count, total }: {
           </button>
         )}
       </div>
-      {value && (
+      {showCount && value && (
         <span className="text-xs text-muted-foreground">{count} of {total}</span>
       )}
     </div>
