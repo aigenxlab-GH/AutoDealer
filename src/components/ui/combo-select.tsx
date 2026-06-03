@@ -96,7 +96,10 @@ export function ComboSelect({
               className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
               onKeyDown={(e) => {
                 if (e.key === "Escape") { setOpen(false); setSearch(""); }
-                if (e.key === "Enter" && filtered.length === 1) select(filtered[0].value);
+                if (e.key === "Enter") {
+                  if (filtered.length === 1) select(filtered[0].value);
+                  else if (filtered.length === 0 && search.trim()) select(search.trim());
+                }
               }}
             />
             {search && (
@@ -120,8 +123,17 @@ export function ComboSelect({
               </li>
             )}
 
-            {filtered.length === 0 && (
-              <li className="px-2.5 py-3 text-center text-xs text-muted-foreground">No results</li>
+            {filtered.length === 0 && !search && (
+              <li className="px-2.5 py-3 text-center text-xs text-muted-foreground">No options</li>
+            )}
+            {filtered.length === 0 && search && (
+              <li>
+                <button type="button" onClick={() => select(search)}
+                  className="flex w-full items-center gap-2 px-2.5 py-2 text-left text-xs transition-colors hover:bg-accent">
+                  <Check className="size-3 shrink-0 opacity-0" />
+                  <span>Use <span className="font-semibold">&ldquo;{search}&rdquo;</span></span>
+                </button>
+              </li>
             )}
 
             {filtered.map((o) => (

@@ -331,31 +331,24 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
                 )}
               </div>
             ) : (
-              <Select
+              <ComboSelect
                 value={variantOptions.some((v) => v.name === form.variant) ? (form.variant ?? "") : ""}
-                onValueChange={(v) => {
-                  const val = v ?? "";
+                onChange={(val) => {
                   if (val === "__other__") {
                     setCustomVariant(true);
                     set("variant", "");
                   } else {
                     set("variant", val);
+                    setCustomVariant(false);
                   }
                 }}
+                options={variantOptions.map((v) => ({ value: v.name, label: v.name }))}
+                placeholder={form.model ? (variantOptions.length ? "Select or type variant" : "Type variant name") : "Select model first"}
+                showAll={false}
+                otherLabel="Other — enter manually"
                 disabled={!form.model}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={form.model ? (variantOptions.length ? "Select variant" : "No variants — enter manually") : "Select model first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {variantOptions.map((v) => (
-                    <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
-                  ))}
-                  <SelectItem value="__other__" className="text-muted-foreground italic">
-                    Other — enter manually
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                triggerClassName="w-full"
+              />
             )}
           </Field>
 

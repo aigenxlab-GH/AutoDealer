@@ -1,5 +1,5 @@
 import type { Vehicle } from "@/lib/types";
-import { formatDate, formatKms, formatNumberIN } from "@/lib/format";
+import { formatDate, formatKms } from "@/lib/format";
 import { capitalize, ownerLabel } from "@/lib/vehicle-display";
 
 function buildSpecs(v: Vehicle): { label: string; value: string }[] {
@@ -38,7 +38,6 @@ function buildSpecs(v: Vehicle): { label: string; value: string }[] {
     });
   if (v.ncapRating != null)
     rows.push({ label: "Global NCAP Rating", value: `${"★".repeat(v.ncapRating)}${"☆".repeat(5 - v.ncapRating)} (${v.ncapRating}/5)` });
-  rows.push({ label: "Listing Views", value: formatNumberIN(v.views) });
 
   return rows;
 }
