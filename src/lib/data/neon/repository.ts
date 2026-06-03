@@ -209,7 +209,7 @@ class NeonVehicleRepository implements VehicleRepository {
 
     params.push(id);
     const rows = await query(
-      `UPDATE vehicles SET ${sets.join(", ")} WHERE id = $${i}::uuid RETURNING *`,
+      `UPDATE vehicles SET ${sets.join(", ")} WHERE id::text = $${i} RETURNING *`,
       params,
     );
     return rows[0] ? toVehicle(rows[0]) : null;
