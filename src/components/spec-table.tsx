@@ -13,7 +13,7 @@ function buildSpecs(v: Vehicle): { label: string; value: string }[] {
   rows.push({ label: "Ownership", value: ownerLabel(v.owners) });
 
   if (v.type === "car") {
-    if (v.fuelType) rows.push({ label: "Fuel Type", value: capitalize(v.fuelType) });
+    if (v.fuelType) rows.push({ label: "Fuel Type", value: v.fuelType === "petrol-cng" ? "Petrol & CNG" : capitalize(v.fuelType) });
     if (v.transmission)
       rows.push({ label: "Transmission", value: capitalize(v.transmission) });
   } else {
@@ -49,10 +49,14 @@ export function SpecTable({ vehicle }: { vehicle: Vehicle }) {
       {specs.map((row) => (
         <div
           key={row.label}
-          className="flex justify-between gap-4 border-b py-2.5 text-sm"
+          className="border-b py-2.5 text-sm"
         >
-          <dt className="text-muted-foreground">{row.label}</dt>
-          <dd className="text-right font-medium">{row.value}</dd>
+          {/* Mobile: label on top, value below — no truncation */}
+          {/* Desktop (sm+): label left, value right on same line */}
+          <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <dt className="text-xs text-muted-foreground sm:text-sm">{row.label}</dt>
+            <dd className="font-medium sm:text-right">{row.value}</dd>
+          </div>
         </div>
       ))}
     </dl>
