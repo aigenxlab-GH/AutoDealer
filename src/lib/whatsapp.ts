@@ -23,3 +23,30 @@ export function buildGeneralWhatsAppUrl(message?: string): string {
     `Hi ${siteConfig.dealer.name}! I'd like to know more about your vehicles.`;
   return `${WA_BASE}/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(text)}`;
 }
+
+/**
+ * Returns a context-aware WhatsApp URL based on the current page path.
+ * Used by the floating button so the owner immediately knows what the visitor wants.
+ */
+export function buildContextWhatsAppUrl(pathname: string): string {
+  const dealer = siteConfig.dealer.name;
+  let text: string;
+
+  if (pathname.startsWith("/car/")) {
+    text = `Hi ${dealer}! I found a car listing on your website and I'm interested. Can you share more details?`;
+  } else if (pathname.startsWith("/bike/")) {
+    text = `Hi ${dealer}! I found a bike listing on your website and I'm interested. Can you share more details?`;
+  } else if (pathname === "/cars") {
+    text = `Hi ${dealer}! I visited your website and I'm looking for a used car. Can you help me find the right one?`;
+  } else if (pathname === "/bikes") {
+    text = `Hi ${dealer}! I visited your website and I'm looking for a used bike. Can you help me find the right one?`;
+  } else if (pathname === "/finance") {
+    text = `Hi ${dealer}! I'm interested in vehicle financing options. Can you share more details?`;
+  } else if (pathname === "/contact") {
+    text = `Hi ${dealer}! I have a general enquiry. Can you help me?`;
+  } else {
+    text = `Hi ${dealer}! I visited your website and would like to know more about your vehicles.`;
+  }
+
+  return `${WA_BASE}/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(text)}`;
+}

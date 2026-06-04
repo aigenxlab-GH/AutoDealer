@@ -1,11 +1,17 @@
-import { MessageCircle } from "lucide-react";
-import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp";
+"use client";
 
-/** Persistent WhatsApp call-to-action, bottom-right on every public page. */
+import { usePathname } from "next/navigation";
+import { MessageCircle } from "lucide-react";
+import { buildContextWhatsAppUrl } from "@/lib/whatsapp";
+
+/** Persistent WhatsApp CTA — pre-fills a context-aware message based on current page. */
 export function FloatingWhatsApp() {
+  const pathname = usePathname();
+  const href = buildContextWhatsAppUrl(pathname);
+
   return (
     <a
-      href={buildGeneralWhatsAppUrl()}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"

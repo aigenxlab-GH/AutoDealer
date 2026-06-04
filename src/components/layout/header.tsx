@@ -14,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { siteConfig } from "@/config/site";
-import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp";
+import { buildContextWhatsAppUrl } from "@/lib/whatsapp";
 import { useShortlist } from "@/lib/use-shortlist";
 import { cn } from "@/lib/utils";
 
@@ -99,7 +99,7 @@ export function Header() {
           </Link>
 
           <a
-            href={buildGeneralWhatsAppUrl()}
+            href={buildContextWhatsAppUrl(pathname)}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -143,7 +143,7 @@ export function Header() {
                   </Link>
                 ))}
                 <a
-                  href={buildGeneralWhatsAppUrl()}
+                  href={buildContextWhatsAppUrl(pathname)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center gap-2 rounded-lg bg-[#25D366] px-3 py-2.5 text-sm font-medium text-white"
