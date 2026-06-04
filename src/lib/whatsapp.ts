@@ -11,24 +11,26 @@ export function vehicleTitle(v: Vehicle): string {
 /**
  * The PRD's enquiry deep link. Writes the lead first, then redirects here.
  */
-export function buildEnquiryWhatsAppUrl(vehicle: Vehicle, name: string): string {
-  const text = `Hi! I am interested in the ${vehicleTitle(vehicle)} listed on your website. My name is ${name.trim()}. Is it still available?`;
-  return `${WA_BASE}/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(text)}`;
+/** @param number  E.164 without '+' — falls back to siteConfig if empty */
+function waNumber(number?: string): string {
+  return number || siteConfig.dealer.whatsappNumber;
 }
 
-/** Generic "chat with us" link for the floating button / header. */
-export function buildGeneralWhatsAppUrl(message?: string): string {
+export function buildEnquiryWhatsAppUrl(vehicle: Vehicle, name: string, number?: string): string {
+  const text = `Hi! I am interested in the ${vehicleTitle(vehicle)} listed on your website. My name is ${name.trim()}. Is it still available?`;
+  return `${WA_BASE}/${waNumber(number)}?text=${encodeURIComponent(text)}`;
+}
+
+/** Generic "chat with us" link. */
+export function buildGeneralWhatsAppUrl(message?: string, number?: string): string {
   const text =
     message ??
     `Hi ${siteConfig.dealer.name}! I'd like to know more about your vehicles.`;
-  return `${WA_BASE}/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(text)}`;
+  return `${WA_BASE}/${waNumber(number)}?text=${encodeURIComponent(text)}`;
 }
 
-/**
- * Returns a context-aware WhatsApp URL based on the current page path.
- * Used by the floating button so the owner immediately knows what the visitor wants.
- */
-export function buildContextWhatsAppUrl(pathname: string): string {
+/** Context-aware URL — message varies based on current page. */
+export function buildContextWhatsAppUrl(pathname: string, number?: string): string {
   const dealer = siteConfig.dealer.name;
   let text: string;
 
@@ -48,5 +50,5 @@ export function buildContextWhatsAppUrl(pathname: string): string {
     text = `Hi ${dealer}! I visited your website and would like to know more about your vehicles.`;
   }
 
-  return `${WA_BASE}/${siteConfig.dealer.whatsappNumber}?text=${encodeURIComponent(text)}`;
+  return `${WA_BASE}/${waNumber(number)}?text=${encodeURIComponent(text)}`;
 }

@@ -3,11 +3,13 @@
 import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { buildContextWhatsAppUrl } from "@/lib/whatsapp";
+import { useWhatsAppNumber } from "@/components/providers/whatsapp-provider";
 
 /** Persistent WhatsApp CTA — pre-fills a context-aware message based on current page. */
 export function FloatingWhatsApp() {
   const pathname = usePathname();
-  const href = buildContextWhatsAppUrl(pathname);
+  const number = useWhatsAppNumber();
+  const href = buildContextWhatsAppUrl(pathname, number);
 
   return (
     <a

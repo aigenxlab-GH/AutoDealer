@@ -62,9 +62,11 @@ export interface CatalogRepository {
 }
 
 export interface ShopSettings {
+  // Contact
+  whatsappNumber: string; // E.164 without '+', e.g. 919920042608
   // Location
-  mapsLink:    string;  // Google Maps share URL → opens in Maps app
-  mapsEmbed:   string;  // Google Maps embed src URL → shown as iframe
+  mapsLink:    string;
+  mapsEmbed:   string;
   // Address
   addressLine: string;
   city:        string;

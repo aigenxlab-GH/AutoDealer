@@ -350,6 +350,7 @@ class MockSettingsRepository implements SettingsRepository {
   async getShopSettings(): Promise<ShopSettings> {
     const s = store.settings;
     return {
+      whatsappNumber: s["whatsapp_number"] ?? "",
       mapsLink:    s["maps_link"]    ?? "",
       mapsEmbed:   s["maps_embed"]   ?? "",
       addressLine: s["address_line"] ?? "",
@@ -364,6 +365,7 @@ class MockSettingsRepository implements SettingsRepository {
     };
   }
   async saveShopSettings(data: ShopSettings): Promise<void> {
+    store.settings["whatsapp_number"] = data.whatsappNumber;
     store.settings["maps_link"]    = data.mapsLink;
     store.settings["maps_embed"]   = data.mapsEmbed;
     store.settings["address_line"] = data.addressLine;

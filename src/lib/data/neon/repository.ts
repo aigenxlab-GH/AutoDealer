@@ -437,6 +437,7 @@ class NeonCatalogRepository implements CatalogRepository {
 }
 
 const ALL_SETTING_KEYS = [
+  "whatsapp_number",
   "maps_link","maps_embed","address_line","city","state","pincode","open_hours",
   "phone_1","phone_2","phone_3","phone_4",
 ] as const;
@@ -449,6 +450,7 @@ class NeonSettingsRepository implements SettingsRepository {
     );
     const m = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     return {
+      whatsappNumber: m["whatsapp_number"] ?? "",
       mapsLink:    m["maps_link"]    ?? "",
       mapsEmbed:   m["maps_embed"]   ?? "",
       addressLine: m["address_line"] ?? "",
@@ -466,6 +468,7 @@ class NeonSettingsRepository implements SettingsRepository {
   async saveShopSettings(data: ShopSettings): Promise<void> {
     // Upsert all keys in one query
     const entries: [string, string][] = [
+      ["whatsapp_number", data.whatsappNumber],
       ["maps_link",    data.mapsLink],
       ["maps_embed",   data.mapsEmbed],
       ["address_line", data.addressLine],

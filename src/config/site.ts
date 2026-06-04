@@ -14,8 +14,8 @@ export const siteConfig = {
   dealer: {
     name: "Sapphire Auto Hub",
     // E.164 without the '+' for wa.me deep links. Placeholder Indian number.
-    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "919876543210",
-    phoneDisplay: "+91 98765 43210",
+    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "919920042608",
+    phoneDisplay: "+91 99200 42608",
     email: "sales@sapphireautohub.example.com",
     addressLine: "Main Road, Janjgir",
     city: "Janjgir-Champa",

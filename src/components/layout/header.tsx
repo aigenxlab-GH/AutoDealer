@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { siteConfig } from "@/config/site";
 import { buildContextWhatsAppUrl } from "@/lib/whatsapp";
+import { useWhatsAppNumber } from "@/components/providers/whatsapp-provider";
 import { useShortlist } from "@/lib/use-shortlist";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ function Logo() {
 
 export function Header() {
   const pathname = usePathname();
+  const number = useWhatsAppNumber();
   const { count, ready } = useShortlist();
   const [open, setOpen] = useState(false);
 
@@ -99,7 +101,7 @@ export function Header() {
           </Link>
 
           <a
-            href={buildContextWhatsAppUrl(pathname)}
+            href={buildContextWhatsAppUrl(pathname, number)}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -143,7 +145,7 @@ export function Header() {
                   </Link>
                 ))}
                 <a
-                  href={buildContextWhatsAppUrl(pathname)}
+                  href={buildContextWhatsAppUrl(pathname, number)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center gap-2 rounded-lg bg-[#25D366] px-3 py-2.5 text-sm font-medium text-white"

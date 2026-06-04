@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MapPin, ExternalLink, Save, Loader2, CheckCircle2, Phone, Clock, Building2 } from "lucide-react";
+import { MapPin, ExternalLink, Save, Loader2, CheckCircle2, Phone, Clock, Building2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,31 @@ export function SettingsForm({ initial }: { initial: ShopSettings }) {
 
   return (
     <div className="space-y-5">
+
+      {/* ── WhatsApp ── */}
+      <Card icon={MessageCircle} title="WhatsApp Number">
+        <FieldGroup label="WhatsApp Number"
+          hint="Enter country code + number without + or spaces. e.g. 919920042608 for +91 99200 42608">
+          <Input
+            value={form.whatsappNumber}
+            onChange={(e) => set("whatsappNumber", e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="919920042608"
+            className="font-mono"
+            maxLength={15}
+            type="tel"
+          />
+          {form.whatsappNumber && (
+            <a
+              href={`https://wa.me/${form.whatsappNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600 hover:underline"
+            >
+              <MessageCircle className="size-3" /> Test this number on WhatsApp
+            </a>
+          )}
+        </FieldGroup>
+      </Card>
 
       {/* ── Address ── */}
       <Card icon={Building2} title="Shop Address">
