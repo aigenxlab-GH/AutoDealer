@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp";
+import { settingsRepository } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Contact Us",
   description: `Visit or message ${siteConfig.name} in ${siteConfig.dealer.city}.`,
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await settingsRepository.getShopSettings();
   const { dealer } = siteConfig;
+  const mapsLink = settings.mapsLink || dealer.mapsUrl;
   const rows = [
-    { icon: MapPin, label: "Showroom", value: `${dealer.addressLine}, ${dealer.city}, ${dealer.state} - ${dealer.pincode}`, href: dealer.mapsUrl },
-    { icon: Phone, label: "Phone", value: dealer.phoneDisplay, href: `tel:${dealer.phoneDisplay}` },
+    { icon: MapPin, label: "Showroom", value: `${settings.addressLine || dealer.addressLine}, ${settings.city || dealer.city}, ${settings.state || dealer.state} - ${settings.pincode || dealer.pincode}`, href: mapsLink },
+    { icon: Phone, label: "Phone", value: settings.phone1 || dealer.phoneDisplay, href: `tel:${(settings.phone1 || dealer.phoneDisplay).replace(/\s/g, "")}` },
     { icon: Mail, label: "Email", value: dealer.email, href: `mailto:${dealer.email}` },
     { icon: Clock, label: "Open Hours", value: dealer.openHours },
   ];
@@ -55,7 +58,7 @@ export default function ContactPage() {
           ))}
 
           <a
-            href={buildGeneralWhatsAppUrl()}
+            href={buildGeneralWhatsAppUrl(undefined, settings.whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-105"

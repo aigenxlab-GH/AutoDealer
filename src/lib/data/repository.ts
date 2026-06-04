@@ -78,6 +78,10 @@ export interface ShopSettings {
   phone2: string;
   phone3: string;
   phone4: string;
+  // Social media
+  instagram: string;
+  facebook:  string;
+  youtube:   string;
 }
 
 export interface SettingsRepository {

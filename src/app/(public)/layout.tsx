@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp";
 import { WhatsAppProvider } from "@/components/providers/whatsapp-provider";
+import { BackToTop } from "@/components/ui/back-to-top";
 import { settingsRepository } from "@/lib/data";
 
 export default async function PublicLayout({
@@ -16,8 +17,14 @@ export default async function PublicLayout({
       <div className="flex min-h-full flex-col">
         <Header />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer
+          mapsLink={settings.mapsLink}
+          instagram={settings.instagram}
+          facebook={settings.facebook}
+          youtube={settings.youtube}
+        />
         <FloatingWhatsApp />
+        <BackToTop />
       </div>
     </WhatsAppProvider>
   );

@@ -7,6 +7,8 @@ import { MobileFilters } from "./mobile-filters";
 import { SearchInput } from "./search-input";
 import { SortSelect } from "./sort-select";
 import { EmptyState } from "./empty-state";
+import { PaginationControls } from "./pagination-controls";
+import { parsePagination } from "@/lib/search-params";
 
 const PRICE_STEP = 25_000;
 const KMS_STEP = 5_000;
@@ -48,6 +50,11 @@ export async function CatalogContent({
   ];
   const kmsMax = roundUp(Math.max(...kmsArr, KMS_STEP), KMS_STEP);
 
+  const { page, pageSize } = parsePagination(searchParams);
+  const pagedResults = pageSize === 0
+    ? results
+    : results.slice((page - 1) * pageSize, page * pageSize);
+
   const filterProps = { type, makes, priceBounds, yearBounds, kmsMax };
   const label = type === "car" ? "Cars" : "Bikes";
 
@@ -86,11 +93,21 @@ export async function CatalogContent({
         {/* Results */}
         <div className="min-w-0 flex-1">
           <p className="mb-4 text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{results.length}</span>{" "}
+            Showing <span className="font-medium text-foreground">{pagedResults.length}</span>
+            {results.length !== pagedResults.length && (
+              <> of <span className="font-medium text-foreground">{results.length}</span></>
+            )}{" "}
             result{results.length === 1 ? "" : "s"}
           </p>
           {results.length > 0 ? (
-            <VehicleGrid vehicles={results} />
+            <>
+              <VehicleGrid vehicles={pagedResults} />
+              <PaginationControls
+                total={results.length}
+                page={page}
+                pageSize={pageSize}
+              />
+            </>
           ) : (
             <EmptyState resetHref={`/${type}s`} />
           )}

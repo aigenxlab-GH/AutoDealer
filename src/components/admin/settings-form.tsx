@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MapPin, ExternalLink, Save, Loader2, CheckCircle2, Phone, Clock, Building2, MessageCircle } from "lucide-react";
+import { MapPin, ExternalLink, Save, Loader2, CheckCircle2, Phone, Clock, Building2, MessageCircle, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -166,6 +166,27 @@ export function SettingsForm({ initial }: { initial: ShopSettings }) {
               title="Shop location preview" />
           </div>
         )}
+      </Card>
+
+      {/* ── Social Media ── */}
+      <Card icon={Share2} title="Social Media">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FieldGroup label="Instagram" hint="Full profile URL">
+            <Input value={form.instagram} onChange={(e) => set("instagram", e.target.value)}
+              placeholder="https://instagram.com/yourprofile" className="text-xs" />
+          </FieldGroup>
+          <FieldGroup label="Facebook" hint="Full page URL">
+            <Input value={form.facebook} onChange={(e) => set("facebook", e.target.value)}
+              placeholder="https://facebook.com/yourpage" className="text-xs" />
+          </FieldGroup>
+          <FieldGroup label="YouTube" hint="Full channel URL">
+            <Input value={form.youtube} onChange={(e) => set("youtube", e.target.value)}
+              placeholder="https://youtube.com/@yourchannel" className="text-xs" />
+          </FieldGroup>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Leave blank to hide that icon from the footer.
+        </p>
       </Card>
 
       {/* ── Save ── */}

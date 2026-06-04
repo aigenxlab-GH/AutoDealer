@@ -72,18 +72,11 @@ export default async function VehicleDetailPage({
 }) {
   const { type, id } = await params;
 
-  let vehicle: Awaited<ReturnType<typeof loadVehicle>>;
-  let similar: Vehicle[] = [];
+  const vehicle = await loadVehicle(type, id);
+  if (!vehicle) notFound();
 
-  try {
-    vehicle = await loadVehicle(type, id);
-    if (!vehicle) notFound();
-    await vehicleRepository.incrementViews(vehicle.id);
-    similar = await vehicleRepository.getSimilar(vehicle, 4);
-  } catch (err) {
-    console.error("[VehicleDetailPage] error:", err);
-    throw err;
-  }
+  await vehicleRepository.incrementViews(vehicle.id);
+  const similar = await vehicleRepository.getSimilar(vehicle, 4);
 
   const highlights = [
     { icon: Calendar, label: "Year", value: String(vehicle.year) },
@@ -105,10 +98,10 @@ export default async function VehicleDetailPage({
   const catalogHref = `/${vehicle.type}s`;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-12">
+    <div className="mx-auto max-w-7xl px-4 pb-32 pt-6 sm:px-6 lg:px-8 lg:pb-12">
       <VehicleJsonLd vehicle={vehicle} />
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1 text-sm text-muted-foreground">
+      <nav className="mb-4 flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">
           Home
         </Link>
@@ -117,7 +110,7 @@ export default async function VehicleDetailPage({
           {vehicle.type === "car" ? "Cars" : "Bikes"}
         </Link>
         <ChevronRight className="size-3.5" />
-        <span className="truncate text-foreground">{vehicleTitle(vehicle)}</span>
+        <span className="truncate text-foreground min-w-0">{vehicleTitle(vehicle)}</span>
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-3">

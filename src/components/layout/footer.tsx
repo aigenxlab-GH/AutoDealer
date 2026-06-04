@@ -7,14 +7,20 @@ import {
 } from "@/components/icons/social";
 import { siteConfig } from "@/config/site";
 
-export function Footer() {
-  const { dealer, social } = siteConfig;
+export function Footer({ mapsLink, instagram, facebook, youtube }: {
+  mapsLink?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+}) {
+  const { dealer } = siteConfig;
+  const resolvedMapsLink = mapsLink || dealer.mapsUrl;
   return (
     <footer className="border-t border-border/60 bg-brand text-brand-foreground">
       {/* Gold top rule */}
       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2.5">
@@ -59,7 +65,7 @@ export function Footer() {
             <li className="flex gap-2.5">
               <MapPin className="mt-0.5 size-4 shrink-0 text-gold/80" />
               <a
-                href={dealer.mapsUrl}
+                href={resolvedMapsLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white"
@@ -87,30 +93,36 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Social */}
-        <div>
-          <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/40">
-            Follow Us
-          </h3>
-          <div className="flex gap-3">
-            {[
-              { href: social.instagram, Icon: InstagramIcon, label: "Instagram" },
-              { href: social.facebook, Icon: FacebookIcon, label: "Facebook" },
-              { href: social.youtube, Icon: YoutubeIcon, label: "YouTube" },
-            ].map(({ href, Icon, label }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="flex size-9 items-center justify-center rounded-lg border border-white/15 bg-white/8 text-white/70 transition-colors hover:border-gold/40 hover:bg-white/15 hover:text-white"
-              >
-                <Icon className="size-4" />
-              </a>
-            ))}
-          </div>
-        </div>
+        {/* Social — only show if a real profile URL is configured (not just the root domain) */}
+        {(() => {
+          const socials = [
+            { href: instagram, Icon: InstagramIcon, label: "Instagram" },
+            { href: facebook,  Icon: FacebookIcon,  label: "Facebook" },
+            { href: youtube,   Icon: YoutubeIcon,   label: "YouTube" },
+          ].filter(({ href }) => !!href);
+          if (socials.length === 0) return null;
+          return (
+            <div>
+              <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-white/40">
+                Follow Us
+              </h3>
+              <div className="flex gap-3">
+                {socials.map(({ href, Icon, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="flex size-9 items-center justify-center rounded-lg border border-white/15 bg-white/8 text-white/70 transition-colors hover:border-gold/40 hover:bg-white/15 hover:text-white"
+                  >
+                    <Icon className="size-4" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       <div className="border-t border-white/10">

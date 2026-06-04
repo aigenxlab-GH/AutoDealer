@@ -55,8 +55,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-1 text-[15px] font-semibold leading-snug tracking-tight text-white/90">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <h3 className="line-clamp-1 text-[13px] font-semibold leading-snug tracking-tight text-white/90 sm:text-[15px]">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
         {vehicle.variant && (
@@ -66,11 +66,11 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         )}
 
         {/* Spec pills */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1">
           {pills.map((pill) => (
             <span
               key={pill}
-              className="inline-flex items-center rounded-full border border-white/8 bg-white/5 px-2 py-0.5 text-[11px] font-medium text-white/50"
+              className="inline-flex items-center rounded-full border border-white/8 bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-white/50 sm:px-2 sm:text-[11px]"
             >
               {pill}
             </span>
@@ -81,7 +81,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="mt-auto flex items-end justify-between pt-3">
           {/* Shimmer gold price */}
           <span
-            className="text-xl font-semibold"
+            className="text-base font-semibold sm:text-xl"
             style={{
               fontFamily: "var(--font-heading)",
               background: "linear-gradient(90deg, #c9973a 0%, #f0c96a 50%, #c9973a 100%)",

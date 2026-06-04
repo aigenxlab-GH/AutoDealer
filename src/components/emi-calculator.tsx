@@ -37,46 +37,70 @@ export function EmiCalculator({ price }: { price: number }) {
       </div>
 
       <div className="mt-6 space-y-6">
-        <div className="space-y-3">
+        {/* Down Payment */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <Label>Down Payment</Label>
             <span className="font-medium">{formatPriceShort(downPayment)}</span>
           </div>
-          <Slider
-            value={[downPayment]}
-            min={0}
-            max={price}
-            step={5000}
-            onValueChange={(v) => setDownPayment(num(v))}
-          />
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Decrease"
+              onClick={() => setDownPayment((p) => Math.max(0, p - 5000))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              −
+            </button>
+            <Slider value={[downPayment]} min={0} max={price} step={5000}
+              onValueChange={(v) => setDownPayment(num(v))} />
+            <button type="button" aria-label="Increase"
+              onClick={() => setDownPayment((p) => Math.min(price, p + 5000))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              +
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Interest Rate */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <Label>Interest Rate</Label>
             <span className="font-medium">{rate.toFixed(1)}% p.a.</span>
           </div>
-          <Slider
-            value={[rate]}
-            min={6}
-            max={18}
-            step={0.1}
-            onValueChange={(v) => setRate(num(v))}
-          />
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Decrease"
+              onClick={() => setRate((r) => Math.max(6, parseFloat((r - 0.5).toFixed(1))))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              −
+            </button>
+            <Slider value={[rate]} min={6} max={18} step={0.1}
+              onValueChange={(v) => setRate(num(v))} />
+            <button type="button" aria-label="Increase"
+              onClick={() => setRate((r) => Math.min(18, parseFloat((r + 0.5).toFixed(1))))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              +
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Loan Tenure */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <Label>Loan Tenure</Label>
             <span className="font-medium">{tenure} months</span>
           </div>
-          <Slider
-            value={[tenure]}
-            min={12}
-            max={84}
-            step={6}
-            onValueChange={(v) => setTenure(num(v))}
-          />
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Decrease"
+              onClick={() => setTenure((t) => Math.max(12, t - 6))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              −
+            </button>
+            <Slider value={[tenure]} min={12} max={84} step={6}
+              onValueChange={(v) => setTenure(num(v))} />
+            <button type="button" aria-label="Increase"
+              onClick={() => setTenure((t) => Math.min(84, t + 6))}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted text-lg font-bold leading-none hover:bg-accent transition-colors">
+              +
+            </button>
+          </div>
         </div>
       </div>
 

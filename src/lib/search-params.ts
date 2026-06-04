@@ -58,6 +58,22 @@ export function parseVehicleFilters(
   };
 }
 
+export const PAGE_SIZES = [20, 50, 0] as const; // 0 = All
+export type PageSize = (typeof PAGE_SIZES)[number];
+
+export interface PaginationParams {
+  page: number;      // 1-based
+  pageSize: PageSize; // 0 = all
+}
+
+export function parsePagination(sp: RawSearchParams): PaginationParams {
+  const sizeRaw = num(sp.pageSize);
+  const pageSize: PageSize =
+    sizeRaw === 50 ? 50 : sizeRaw === 0 ? 0 : 20; // default 20
+  const page = Math.max(1, num(sp.page) ?? 1);
+  return { page, pageSize };
+}
+
 /** Count of active (user-set) filters, for the mobile "Filters (n)" badge. */
 export function countActiveFilters(f: VehicleFilters): number {
   let n = 0;

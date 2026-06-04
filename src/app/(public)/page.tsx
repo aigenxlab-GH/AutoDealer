@@ -149,7 +149,7 @@ export default async function HomePage() {
 
             {/* Large display headline — Fraunces serif */}
             <h1
-              className="mt-5 text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl"
+              className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-7xl"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Certified
@@ -189,7 +189,7 @@ export default async function HomePage() {
             </div>
 
             {/* Stats */}
-            <div className="mt-10 flex gap-8 border-t border-white/8 pt-7">
+            <div className="mt-10 flex gap-6 border-t border-white/8 pt-7 sm:gap-8">
               {[
                 { value: `${cars.length}+`, label: "Cars" },
                 { value: `${bikes.length}+`, label: "Bikes" },
@@ -370,7 +370,8 @@ export default async function HomePage() {
                 <iframe
                   src={shopSettings.mapsEmbed}
                   width="100%"
-                  height="340"
+                  height="300"
+                  className="h-[240px] w-full sm:h-[300px] lg:h-[380px]"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
@@ -382,7 +383,7 @@ export default async function HomePage() {
                   href={mapsLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-[340px] flex-col items-center justify-center gap-3 text-white/30 transition-colors hover:text-white/50"
+                  className="flex h-[240px] flex-col items-center justify-center gap-3 text-white/30 transition-colors hover:text-white/50 sm:h-[300px] lg:h-[380px]"
                 >
                   <MapPin className="size-12 opacity-40" />
                   <p className="text-sm">Click to open in Google Maps</p>
@@ -469,7 +470,7 @@ export default async function HomePage() {
                 Tell us your budget and preference — we&rsquo;ll source the right vehicle for you.
               </p>
             </div>
-            <a href={buildGeneralWhatsAppUrl()} target="_blank" rel="noopener noreferrer"
+            <a href={buildGeneralWhatsAppUrl(undefined, shopSettings.whatsappNumber)} target="_blank" rel="noopener noreferrer"
               className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
               style={{ boxShadow: "0 4px 24px rgba(37,211,102,0.3)" }}>
               <MessageCircle className="size-4" /> Chat with us

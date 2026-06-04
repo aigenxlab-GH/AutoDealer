@@ -362,6 +362,9 @@ class MockSettingsRepository implements SettingsRepository {
       phone2:      s["phone_2"]      ?? "",
       phone3:      s["phone_3"]      ?? "",
       phone4:      s["phone_4"]      ?? "",
+      instagram:   s["instagram"]    ?? "",
+      facebook:    s["facebook"]     ?? "",
+      youtube:     s["youtube"]      ?? "",
     };
   }
   async saveShopSettings(data: ShopSettings): Promise<void> {
@@ -377,6 +380,9 @@ class MockSettingsRepository implements SettingsRepository {
     store.settings["phone_2"]      = data.phone2;
     store.settings["phone_3"]      = data.phone3;
     store.settings["phone_4"]      = data.phone4;
+    store.settings["instagram"]    = data.instagram;
+    store.settings["facebook"]     = data.facebook;
+    store.settings["youtube"]      = data.youtube;
   }
 }
 

@@ -440,6 +440,7 @@ const ALL_SETTING_KEYS = [
   "whatsapp_number",
   "maps_link","maps_embed","address_line","city","state","pincode","open_hours",
   "phone_1","phone_2","phone_3","phone_4",
+  "instagram","facebook","youtube",
 ] as const;
 
 class NeonSettingsRepository implements SettingsRepository {
@@ -462,6 +463,9 @@ class NeonSettingsRepository implements SettingsRepository {
       phone2:      m["phone_2"]      ?? "",
       phone3:      m["phone_3"]      ?? "",
       phone4:      m["phone_4"]      ?? "",
+      instagram:   m["instagram"]    ?? "",
+      facebook:    m["facebook"]     ?? "",
+      youtube:     m["youtube"]      ?? "",
     };
   }
 
@@ -480,6 +484,9 @@ class NeonSettingsRepository implements SettingsRepository {
       ["phone_2",      data.phone2],
       ["phone_3",      data.phone3],
       ["phone_4",      data.phone4],
+      ["instagram",    data.instagram],
+      ["facebook",     data.facebook],
+      ["youtube",      data.youtube],
     ];
     const placeholders = entries.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(", ");
     const params = entries.flatMap(([k, v]) => [k, v]);
