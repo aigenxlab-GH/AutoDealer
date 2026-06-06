@@ -38,6 +38,8 @@ export interface Vehicle {
   description?: string;
   /** Global NCAP safety rating: 0–5 stars. undefined = not rated / not applicable. */
   ncapRating?: number;
+  /** Short video URL — YouTube, Instagram Reels, etc. */
+  videoUrl?: string;
   images: string[];
   primaryImageUrl: string;
   isSold: boolean;

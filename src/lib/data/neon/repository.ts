@@ -79,6 +79,7 @@ function toVehicle(r: any): Vehicle {
     })(),
     primaryImageUrl: r.primary_image_url,
     ncapRating: r.ncap_rating != null ? Number(r.ncap_rating) : undefined,
+    videoUrl:   r.video_url ?? undefined,
     isSold: r.is_sold,
     isFeatured: r.is_featured,
     views: r.views,
@@ -167,8 +168,8 @@ class NeonVehicleRepository implements VehicleRepository {
          (type, make, model, variant, year, price, kms_driven, owners,
           fuel_type, transmission, engine_cc, mileage, color, body_type,
           registration_number, registration_city, insurance_valid_till,
-          description, ncap_rating, images, primary_image_url, is_sold, is_featured)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+          description, ncap_rating, video_url, images, primary_image_url, is_sold, is_featured)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
        RETURNING *`,
       [
         input.type, input.make, input.model, input.variant ?? null,
@@ -177,7 +178,7 @@ class NeonVehicleRepository implements VehicleRepository {
         input.mileage ?? null, input.color ?? null, input.bodyType ?? null,
         input.registrationNumber ?? null, input.registrationCity ?? null,
         input.insuranceValidTill ?? null, input.description ?? null,
-        input.ncapRating ?? null, JSON.stringify(input.images), input.primaryImageUrl,
+        input.ncapRating ?? null, input.videoUrl ?? null, JSON.stringify(input.images), input.primaryImageUrl,
         input.isSold, input.isFeatured,
       ],
     );
@@ -192,7 +193,7 @@ class NeonVehicleRepository implements VehicleRepository {
       ["engineCc","engine_cc"], ["mileage","mileage"], ["color","color"],
       ["bodyType","body_type"], ["registrationNumber","registration_number"],
       ["registrationCity","registration_city"], ["insuranceValidTill","insurance_valid_till"],
-      ["description","description"], ["ncapRating","ncap_rating"], ["images","images"],
+      ["description","description"], ["ncapRating","ncap_rating"], ["videoUrl","video_url"], ["images","images"],
       ["primaryImageUrl","primary_image_url"], ["isSold","is_sold"], ["isFeatured","is_featured"],
     ];
 

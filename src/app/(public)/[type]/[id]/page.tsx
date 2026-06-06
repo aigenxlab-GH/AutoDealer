@@ -22,6 +22,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { EnquiryModalHost } from "@/components/enquiry/enquiry-modal";
 import { EnquireButton, StickyEnquireBar } from "@/components/enquiry/enquiry-cta";
 import { VehicleJsonLd } from "@/components/json-ld";
+import { VehicleVideo } from "@/components/vehicle-video";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/site";
 import { formatKms, formatPriceFull } from "@/lib/format";
@@ -123,6 +124,8 @@ export default async function VehicleDetailPage({
             vehicleId={vehicle.id}
             isSold={vehicle.isSold}
           />
+
+          {vehicle.videoUrl && <VehicleVideo url={vehicle.videoUrl} />}
 
           {vehicle.description && (
             <section>

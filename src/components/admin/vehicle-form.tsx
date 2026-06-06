@@ -71,6 +71,7 @@ function defaults(): VehicleInput {
     insuranceValidTill: "",
     description: "",
     ncapRating: undefined,
+    videoUrl: undefined,
     images: [],
     primaryImageUrl: "",
     isSold: false,
@@ -522,6 +523,27 @@ export function VehicleForm({ vehicle, makes, models, variants }: VehicleFormPro
           placeholder="Highlight condition, service history, features…"
           rows={4}
         />
+      </Card>
+
+      {/* Video URL */}
+      <Card title="Vehicle Video">
+        <Field label="Video URL">
+          <Input
+            value={form.videoUrl ?? ""}
+            onChange={(e) => set("videoUrl", e.target.value || undefined)}
+            placeholder="https://youtube.com/shorts/xxx  or  https://youtu.be/xxx"
+            className="font-mono text-xs"
+          />
+        </Field>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Paste a YouTube, YouTube Shorts, or Instagram Reel link. Shown as a video player (YouTube) or Watch button on the listing.
+        </p>
+        {form.videoUrl && (
+          <a href={form.videoUrl} target="_blank" rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-brand hover:underline">
+            ▶ Preview link
+          </a>
+        )}
       </Card>
 
       {/* NCAP Safety Rating — cars only */}

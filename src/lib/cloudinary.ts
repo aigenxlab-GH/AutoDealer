@@ -19,9 +19,9 @@ export function isCloudinaryConfigured(): boolean {
 
 export interface UploadSignature {
   cloudName: string;
-  apiKey: string;
+  apiKey:    string;
   timestamp: number;
-  folder: string;
+  folder:    string;
   signature: string;
 }
 
